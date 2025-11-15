@@ -168,8 +168,6 @@ L:GetPropertyChangedSignal("CameraMaxZoomDistance"):Connect(function() L.CameraM
 L.CharacterAdded:Connect(function() task.wait(.1) L.CameraMaxZoomDistance=math.huge end)
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function() task.wait() L.CameraMaxZoomDistance=math.huge end)
 
-local UIS = game:GetService("UserInputService")
-
 task.spawn(function()
     while true do
         task.wait(0.1)
