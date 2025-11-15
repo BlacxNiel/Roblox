@@ -1,0 +1,25 @@
+local UIS = game:GetService("UserInputService")
+local get = workspace.GetDescendants
+local xrayEnabled = false
+
+local function applyXray(state)
+    local ds = get(workspace)
+    for i = 1, #ds do
+        local v = ds[i]
+        if v:IsA("BasePart") then
+            local p = v.Parent
+            if not (p and p:FindFirstChildWhichIsA("Humanoid") or p and p.Parent and p.Parent:FindFirstChildWhichIsA("Humanoid")) then
+                pcall(function()
+                    v.LocalTransparencyModifier = state and 0.5 or 0
+                end)
+            end
+        end
+    end
+end
+
+UIS.InputBegan:Connect(function(i, gp)
+    if not gp and (UIS:IsKeyDown(Enum.KeyCode.LeftControl) or UIS:IsKeyDown(Enum.KeyCode.RightControl)) and (i.KeyCode == Enum.KeyCode.Nine or i.KeyCode == Enum.KeyCode.KeypadNine) then
+        xrayEnabled = not xrayEnabled
+        applyXray(xrayEnabled)
+    end
+end)
