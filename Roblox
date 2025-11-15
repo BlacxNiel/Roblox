@@ -1,0 +1,169 @@
+local G=game
+local S=G.GetService
+local P=S(G,"Players")
+local L=P.LocalPlayer
+local W=S(G,"Workspace")
+local U=S(G,"UserInputService")
+local R=S(G,"RunService")
+local E=true
+local T=false
+local F=Color3.fromRGB(255,105,180)
+local O=Color3.fromRGB(255,150,200)
+
+local function addHL(c,p)
+    if not E or (T and p.Team==L.Team) or c:FindFirstChild("HL") then return end
+    local h=Instance.new("Highlight")
+    h.Name="HL"
+    h.FillColor=F
+    h.OutlineColor=O
+    h.FillTransparency=.5
+    h.Parent=c
+end
+
+local function remHL(c)
+    local h=c:FindFirstChild("HL")
+    if h then h:Destroy() end
+end
+
+local function setupPlr(p)
+    p.CharacterAdded:Connect(function(c)
+        local h=c:WaitForChild("Humanoid")
+        if h.Health>0 then addHL(c,p) end
+        h.Died:Connect(function() remHL(c) end)
+    end)
+    local c=p.Character
+    if c then addHL(c,p) end
+end
+
+for _,x in pairs(P:GetPlayers()) do if x~=L then setupPlr(x) end end
+P.PlayerAdded:Connect(setupPlr)
+P.PlayerRemoving:Connect(function(p2) if p2.Character then remHL(p2.Character) end end)
+
+U.InputBegan:Connect(function(i,g)
+    if not g and i.KeyCode==Enum.KeyCode.F4 and U:IsKeyDown(Enum.KeyCode.LeftControl) then
+        E=not E
+        for _,p2 in pairs(P:GetPlayers()) do
+            if p2~=L then
+                local c=p2.Character
+                if c then
+                    if E then addHL(c,p2) else remHL(c) end
+                end
+            end
+        end
+    end
+end)
+
+local s=getgenv().Settings or {Korblox=true,Headless=false}
+local legs={"Right Leg","RightUpperLeg","RightLowerLeg","RightFoot"}
+
+local function applyBody()
+    local c=L.Character or L.CharacterAdded:Wait()
+    if s.Korblox then
+        for _,n in pairs(legs) do
+            local x=c:FindFirstChild(n)
+            if x then
+                x.Transparency=1
+                for _,o in pairs(x:GetChildren()) do
+                    local t=o.ClassName
+                    if t=="Mesh" or t=="SpecialMesh" then o:Destroy() end
+                end
+            end
+        end
+    end
+    if s.Headless then
+        local h=c:FindFirstChild("Head")
+        if h then
+            h.Transparency=1
+            for _,v in pairs(h:GetChildren()) do
+                local t=v.ClassName
+                if t=="Decal" or t=="SpecialMesh" then v:Destroy() end
+            end
+        end
+    end
+end
+
+L.CharacterAdded:Connect(function()
+    task.wait(.1)
+    applyBody()
+end)
+
+if L.Character then applyBody() end
+
+local FOV=120
+local cam=W.CurrentCamera
+cam.FieldOfView=FOV
+
+W:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+    cam=W.CurrentCamera
+    cam.FieldOfView=FOV
+end)
+
+cam:GetPropertyChangedSignal("FieldOfView"):Connect(function()
+    if cam.FieldOfView~=FOV then cam.FieldOfView=FOV end
+end)
+
+local ref=cloneref or function(x)return x end
+local Plrs=ref(P)
+local UIS=ref(U)
+local RS=ref(R)
+local Wk=ref(W)
+
+local plr=Plrs.LocalPlayer
+local enabled=false
+local rotCon,oldAR
+local yAxis=Vector3.yAxis
+local offset=CFrame.new(1.8,0,0)
+
+local function getParts()
+    local c=plr.Character or plr.CharacterAdded:Wait()
+    return c:WaitForChild("Humanoid"),c:WaitForChild("HumanoidRootPart")
+end
+
+local function lockMouse(v)
+    if UIS.MouseEnabled then
+        UIS.MouseBehavior=v and Enum.MouseBehavior.LockCenter or Enum.MouseBehavior.Default
+    end
+end
+
+local function faceCam(h,hrp,state)
+    if rotCon then rotCon:Disconnect() end
+    if state then
+        oldAR=h.AutoRotate
+        h.AutoRotate=false
+        rotCon=RS.RenderStepped:Connect(function()
+            local cam=Wk.CurrentCamera
+            if not cam then return end
+            local lv=cam.CFrame.LookVector
+            if lv.X~=0 or lv.Z~=0 then
+                hrp.CFrame=CFrame.lookAt(hrp.Position,Vector3.new(hrp.Position.X+lv.X,hrp.Position.Y,hrp.Position.Z+lv.Z),yAxis)
+            end
+            cam.CFrame=cam.CFrame*offset
+        end)
+    else
+        if oldAR~=nil then h.AutoRotate=oldAR end
+    end
+end
+
+local function apply(v)
+    enabled=v
+    local h,hrp=getParts()
+    lockMouse(v)
+    faceCam(h,hrp,v)
+end
+
+UIS.InputBegan:Connect(function(i,g)
+    if not g and i.KeyCode==Enum.KeyCode.P then apply(not enabled) end
+end)
+
+plr.CharacterAdded:Connect(function() task.defer(function() apply(enabled) end) end)
+
+local last=Wk.CurrentCamera
+Wk:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+    local c=Wk.CurrentCamera
+    if c~=last then last=c apply(enabled) end
+end)
+
+L.CameraMaxZoomDistance=math.huge
+L:GetPropertyChangedSignal("CameraMaxZoomDistance"):Connect(function() L.CameraMaxZoomDistance=math.huge end)
+L.CharacterAdded:Connect(function() task.wait(.1) L.CameraMaxZoomDistance=math.huge end)
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function() task.wait() L.CameraMaxZoomDistance=math.huge end)
