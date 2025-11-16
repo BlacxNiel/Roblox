@@ -327,7 +327,7 @@ task.spawn(function()
 end)
 
 local running = false
-local shiftSpeed = 0.02
+local shiftSpeed = 0.01
 
 UIS.InputBegan:Connect(function(i,g)
     if not g and i.KeyCode == Enum.KeyCode.LeftShift then
