@@ -161,6 +161,22 @@ local T=false
 local F=Color3.fromRGB(255,105,180)
 local O=Color3.fromRGB(255,150,200)
 
+local Lg = game:GetService("Lighting")
+local Cb = Color3.new(1,1,1)
+
+local function Bfull()
+    Lg.Ambient = Cb
+    Lg.ColorShift_Bottom = Cb
+    Lg.ColorShift_Top = Cb
+    Lg.FogEnd = 100000
+    Lg.FogStart = 0
+    Lg.ClockTime = 14
+    Lg.GlobalShadows = false
+end
+
+Bfull()
+Lg.LightingChanged:Connect(Bfull)
+
 local function addHL(c,p)
     if not E or (T and p.Team==L.Team) or c:FindFirstChild("HL") then return end
     local h=Instance.new("Highlight")
