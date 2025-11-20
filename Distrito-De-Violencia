@@ -335,6 +335,61 @@ L:GetPropertyChangedSignal("CameraMaxZoomDistance"):Connect(function() L.CameraM
 L.CharacterAdded:Connect(function() task.wait(.1) L.CameraMaxZoomDistance=math.huge end)
 workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function() task.wait() L.CameraMaxZoomDistance=math.huge end)
 
+local character = L.Character
+local rootPart
+local isTP = false
+local savedCF
+local hb
+
+local function updRoot(c)
+	character = c
+	rootPart = c:WaitForChild("HumanoidRootPart",1)
+end
+
+updRoot(character or L.CharacterAdded:Wait())
+
+local function startHB()
+	if hb then return end
+	hb = R.Heartbeat:Connect(function()
+		if isTP and savedCF and rootPart then
+			rootPart.CFrame = savedCF
+			rootPart.AssemblyLinearVelocity = Vector3.zero
+			rootPart.AssemblyAngularVelocity = Vector3.zero
+		end
+	end)
+end
+
+local function stopHB()
+	if hb then hb:Disconnect() hb=nil end
+end
+
+local function toggleTP()
+	if not rootPart then return end
+	if not isTP then
+		savedCF = rootPart.CFrame
+		isTP = true
+		startHB()
+	else
+		isTP = false
+		savedCF = nil
+		stopHB()
+	end
+end
+
+U.InputBegan:Connect(function(i,g)
+	if g then return end
+	if U:IsKeyDown(Enum.KeyCode.LeftControl) and i.KeyCode==Enum.KeyCode.F4 then
+		toggleTP()
+	end
+end)
+
+L.CharacterAdded:Connect(function(c)
+	isTP=false
+	savedCF=nil
+	stopHB()
+	updRoot(c)
+end)
+
 task.spawn(function()
     while true do
         task.wait(0.1)
