@@ -1,14 +1,7 @@
+local placeId = game.PlaceId
 local jobId = game.JobId
-print("JOB ID DEL SERVIDOR: " .. jobId)
+local link = "https://www.roseal.live/join?placeId=" .. placeId .. "&gameInstanceId=" .. jobId
 
 if setclipboard then
-    setclipboard(jobId)
-    print("✔ JobId copiado al portapapeles!")
-else
-    print("⚠ Tu ejecutor no soporta setclipboard.")
+    setclipboard(link)
 end
-game.StarterGui:SetCore("SendNotification", {
-    Title = "JOB ID";
-    Text = jobId;
-    Duration = 10;
-})
