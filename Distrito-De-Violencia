@@ -549,3 +549,16 @@ end)
 if L.Character then
     task.defer(function() adjustHipHeight(L.Character) end)
 end
+
+L.CharacterAdded:Connect(function(c)
+    task.wait(.15)
+    FB_tool()
+    TP_tool()
+    Freeze_tool()
+end)
+
+if L.Character then
+    FB_tool()
+    TP_tool()
+    Freeze_tool()
+end
