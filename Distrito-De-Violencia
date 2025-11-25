@@ -554,10 +554,12 @@ L.CharacterAdded:Connect(function(c)
     FB_tool()
     TP_tool()
     Freeze_tool()
+    adjustHipHeight(c)
 end)
 
 if L.Character then
     FB_tool()
     TP_tool()
     Freeze_tool()
+    adjustHipHeight(L.Character)
 end
