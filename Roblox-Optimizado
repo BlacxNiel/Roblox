@@ -363,13 +363,6 @@ local function toggleTP()
 	end
 end
 
-U.InputBegan:Connect(function(i,g)
-	if g then return end
-	if U:IsKeyDown(Enum.KeyCode.LeftControl) and i.KeyCode==Enum.KeyCode.F4 then
-		toggleTP()
-	end
-end)
-
 L.CharacterAdded:Connect(function(c)
 	isTP=false
 	savedCF=nil
@@ -460,4 +453,32 @@ TP_tool()
 L.CharacterAdded:Connect(function()
     task.wait(.15)
     TP_tool()
+end)
+
+local function Freeze_tool()
+    local t = Instance.new("Tool")
+    t.RequiresHandle = false
+    t.Name = "Freeze"
+
+    t.Activated:Connect(function()
+        if not rootPart then return end
+        if not isTP then
+            savedCF = rootPart.CFrame
+            isTP = true
+            startHB()
+        else
+            isTP = false
+            savedCF = nil
+            stopHB()
+        end
+    end)
+
+    t.Parent = L.Backpack
+end
+
+Freeze_tool()
+
+L.CharacterAdded:Connect(function()
+    task.wait(.15)
+    Freeze_tool()
 end)
