@@ -359,11 +359,6 @@ local function Freeze_tool()
     t.Parent = L.Backpack
 end
 
-L.CharacterAdded:Connect(function()
-    task.wait(.15)
-    Freeze_tool()
-end)
-
 local function adjustHipHeight(c)
     local h = c:FindFirstChildOfClass("Humanoid")
     if h then
