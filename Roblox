@@ -130,12 +130,16 @@ local function applyBody()
     end
 end
 
-L.CharacterAdded:Connect(function()
+L.CharacterAdded:Connect(function(c)
     task.wait(.1)
     applyBody()
+    createParticles(c)
 end)
 
-if L.Character then applyBody() end
+if L.Character then
+    applyBody()
+    createParticles(L.Character)
+end
 
 local FOV=120
 local cam=W.CurrentCamera
