@@ -303,3 +303,31 @@ L.CharacterAdded:Connect(function()
     task.wait(.15)
     TP_tool()
 end)
+
+local function Freeze_tool()
+    local t = Instance.new("Tool")
+    t.RequiresHandle = false
+    t.Name = "Freeze"
+
+    t.Activated:Connect(function()
+        if not rootPart then return end
+        if not isTP then
+            savedCF = rootPart.CFrame
+            isTP = true
+            startHB()
+        else
+            isTP = false
+            savedCF = nil
+            stopHB()
+        end
+    end)
+
+    t.Parent = L.Backpack
+end
+
+Freeze_tool()
+
+L.CharacterAdded:Connect(function()
+    task.wait(.15)
+    Freeze_tool()
+end)
