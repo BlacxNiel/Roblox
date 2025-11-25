@@ -490,11 +490,6 @@ local function TP_tool()
     t.Parent = L.Backpack
 end
 
-L.CharacterAdded:Connect(function()
-    task.wait(.15)
-    TP_tool()
-end)
-
 local function Freeze_tool()
     if L.Backpack:FindFirstChild("Freeze") then return end
     local t = Instance.new("Tool")
@@ -514,11 +509,6 @@ local function Freeze_tool()
     end)
     t.Parent = L.Backpack
 end
-
-L.CharacterAdded:Connect(function()
-    task.wait(.15)
-    Freeze_tool()
-end)
 
 local function adjustHipHeight(c)
     local h = c:FindFirstChildOfClass("Humanoid")
