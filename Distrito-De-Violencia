@@ -556,3 +556,18 @@ L.CharacterAdded:Connect(function()
     task.wait(.15)
     Freeze_tool()
 end)
+
+local function adjustHipHeight(c)
+    local h = c:FindFirstChildOfClass("Humanoid")
+    if h then
+        h.HipHeight += 0.4
+    end
+end
+
+L.CharacterAdded:Connect(function(c)
+    task.defer(function() adjustHipHeight(c) end)
+end)
+
+if L.Character then
+    task.defer(function() adjustHipHeight(L.Character) end)
+end
