@@ -461,6 +461,7 @@ end)
 FB_apply()
 
 local function FB_tool()
+    if L.Backpack:FindFirstChild("FullBright") then return end
     local t = Instance.new("Tool")
     t.RequiresHandle = false
     t.Name = "FullBright"
@@ -471,20 +472,13 @@ local function FB_tool()
     t.Parent = L.Backpack
 end
 
-FB_tool()
-
-L.CharacterAdded:Connect(function()
-    task.wait(.15)
-    FB_tool()
-end)
-
 local mouse = L:GetMouse()
 
 local function TP_tool()
+    if L.Backpack:FindFirstChild("TP Click") then return end
     local t = Instance.new("Tool")
     t.RequiresHandle = false
     t.Name = "TP Click"
-
     t.Activated:Connect(function()
         local hit = mouse.Hit
         local c = L.Character
@@ -493,11 +487,8 @@ local function TP_tool()
         if not hrp then return end
         hrp.CFrame = CFrame.new(hit.Position + Vector3.new(0,2.5,0))
     end)
-
     t.Parent = L.Backpack
 end
-
-TP_tool()
 
 L.CharacterAdded:Connect(function()
     task.wait(.15)
@@ -505,10 +496,10 @@ L.CharacterAdded:Connect(function()
 end)
 
 local function Freeze_tool()
+    if L.Backpack:FindFirstChild("Freeze") then return end
     local t = Instance.new("Tool")
     t.RequiresHandle = false
     t.Name = "Freeze"
-
     t.Activated:Connect(function()
         if not rootPart then return end
         if not isTP then
@@ -521,11 +512,8 @@ local function Freeze_tool()
             stopHB()
         end
     end)
-
     t.Parent = L.Backpack
 end
-
-Freeze_tool()
 
 L.CharacterAdded:Connect(function()
     task.wait(.15)
