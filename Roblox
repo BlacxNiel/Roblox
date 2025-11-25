@@ -245,3 +245,81 @@ task.spawn(function()
         UIS.MouseIconEnabled = true
     end
 end)
+
+local FB_original = {
+    Ambient = Lg.Ambient,
+    ColorShift_Top = Lg.ColorShift_Top,
+    ColorShift_Bottom = Lg.ColorShift_Bottom,
+    FogEnd = Lg.FogEnd,
+    FogStart = Lg.FogStart,
+    ClockTime = Lg.ClockTime,
+    GlobalShadows = Lg.GlobalShadows
+}
+
+local FB_on = true
+
+local function FB_apply()
+    Lg.Ambient = Cb
+    Lg.ColorShift_Top = Cb
+    Lg.ColorShift_Bottom = Cb
+    Lg.FogEnd = 1e5
+    Lg.FogStart = 0
+    Lg.ClockTime = 14
+    Lg.GlobalShadows = false
+end
+
+local function FB_restore()
+    for k,v in pairs(FB_original) do
+        Lg[k] = v
+    end
+end
+
+Lg.LightingChanged:Connect(function()
+    if FB_on then FB_apply() end
+end)
+
+FB_apply()
+
+local function FB_tool()
+    local t = Instance.new("Tool")
+    t.RequiresHandle = false
+    t.Name = "FullBright"
+    t.Activated:Connect(function()
+        FB_on = not FB_on
+        if FB_on then FB_apply() else FB_restore() end
+    end)
+    t.Parent = L.Backpack
+end
+
+FB_tool()
+
+L.CharacterAdded:Connect(function()
+    task.wait(.15)
+    FB_tool()
+end)
+
+local mouse = L:GetMouse()
+
+local function TP_tool()
+    local t = Instance.new("Tool")
+    t.RequiresHandle = false
+    t.Name = "TP Click"
+
+    t.Activated:Connect(function()
+        local hit = mouse.Hit
+        local c = L.Character
+        if not (hit and c) then return end
+        local hrp = c:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+        hrp.CFrame = CFrame.new(hit.Position + Vector3.new(0,2.5,0))
+    end)
+
+    t.Parent = L.Backpack
+end
+
+TP_tool()
+
+L.CharacterAdded:Connect(function()
+    task.wait(.15)
+    TP_tool()
+end)
