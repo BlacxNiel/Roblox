@@ -523,16 +523,15 @@ end)
 local function adjustHipHeight(c)
     local h = c:FindFirstChildOfClass("Humanoid")
     if h then
-        h.HipHeight += 0.3
+        h.HipHeight += 0.4
+
+        local targetHipHeight = h.HipHeight
+        h:GetPropertyChangedSignal("HipHeight"):Connect(function()
+            if h.HipHeight ~= targetHipHeight then
+                h.HipHeight = targetHipHeight
+            end
+        end)
     end
-end
-
-L.CharacterAdded:Connect(function(c)
-    task.defer(function() adjustHipHeight(c) end)
-end)
-
-if L.Character then
-    task.defer(function() adjustHipHeight(L.Character) end)
 end
 
 L.CharacterAdded:Connect(function(c)
@@ -540,10 +539,12 @@ L.CharacterAdded:Connect(function(c)
     FB_tool()
     TP_tool()
     Freeze_tool()
+    adjustHipHeight(c)
 end)
 
 if L.Character then
     FB_tool()
     TP_tool()
     Freeze_tool()
+    adjustHipHeight(L.Character)
 end
