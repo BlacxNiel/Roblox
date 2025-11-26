@@ -538,7 +538,7 @@ end
 local function adjustHipHeight(c)
     local h = c:FindFirstChildOfClass("Humanoid")
     if h then
-        h.HipHeight += 0.3
+        h.HipHeight += 0.4
 
         local targetHipHeight = h.HipHeight
         h:GetPropertyChangedSignal("HipHeight"):Connect(function()
