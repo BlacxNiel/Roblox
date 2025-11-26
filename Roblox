@@ -41,7 +41,7 @@ local function createParticles(char)
         ColorSequenceKeypoint.new(1, Color3.fromRGB(255,220,0))
     }
 
-    pe.Speed = NumberRange.new(0.02, 0.08)
+    pe.Speed = NumberRange.new(0.005, 0.02)
     pe.VelocitySpread = 60
     pe.SpreadAngle = Vector2.new(90, 90)
 
