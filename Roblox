@@ -10,7 +10,7 @@ local T=false
 local F=Color3.fromRGB(255,105,180)
 local O=Color3.fromRGB(255,150,200)
 
-local ATT_NAME = "YellowBlackParticlesAttachment"
+local ATT_NAME = "Particles"
 
 local function createParticles(char)
     local head = char:FindFirstChild("Head")
@@ -19,40 +19,65 @@ local function createParticles(char)
     local old = head:FindFirstChild(ATT_NAME)
     if old then old:Destroy() end
 
-    local att = Instance.new("Attachment")
-    att.Name = ATT_NAME
-    att.Position = Vector3.new(0, 0.5, 0)
-    att.Parent = head
+    local folder = Instance.new("Folder")
+    folder.Name = ATT_NAME
+    folder.Parent = head
 
-    local pe = Instance.new("ParticleEmitter")
-    pe.Parent = att
+    local mainAtt = Instance.new("Attachment")
+    mainAtt.Parent = folder
+    mainAtt.Position = Vector3.new(0, 0.5, 0)
 
-    pe.Rate = 35
-    pe.Lifetime = NumberRange.new(1.2, 1.8)
-
-    pe.Size = NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.6),
-        NumberSequenceKeypoint.new(1, 0.28)
+    local main = Instance.new("ParticleEmitter")
+    main.Parent = mainAtt
+    main.Rate = 12
+    main.Lifetime = NumberRange.new(1, 1.4)
+    main.Speed = NumberRange.new(1.9, 2.1)
+    main.Acceleration = Vector3.zero
+    main.VelocityInheritance = 0
+    main.Size = NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0.8),
+        NumberSequenceKeypoint.new(1, 0.35)
     }
-
-    pe.Color = ColorSequence.new{
+    main.Color = ColorSequence.new{
         ColorSequenceKeypoint.new(0, Color3.fromRGB(255,220,0)),
         ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0,0,0)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(255,220,0))
     }
 
-    pe.Speed = NumberRange.new(0.005, 0.02)
-    pe.VelocitySpread = 60
-    pe.SpreadAngle = Vector2.new(90, 90)
+    local function makeEmitter(direction)
+        local att = Instance.new("Attachment")
+        att.Parent = folder
+        att.Position = Vector3.new(0, 0.5, 0)
 
-    pe.Transparency = NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.1),
-        NumberSequenceKeypoint.new(1, 0.45)
-    }
+        local pe = Instance.new("ParticleEmitter")
+        pe.Parent = att
+        pe.Rate = 12
+        pe.Lifetime = NumberRange.new(0.9, 1.2)
+        pe.Speed = NumberRange.new(2.2, 2.5)
+        pe.VelocityInheritance = 0
+        pe.Size = NumberSequence.new{
+            NumberSequenceKeypoint.new(0, 0.7),
+            NumberSequenceKeypoint.new(1, 0.3)
+        }
+        pe.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255,220,0)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0,0,0)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255,220,0))
+        }
 
-    pe.Rotation = NumberRange.new(0, 360)
-    pe.RotSpeed = NumberRange.new(-5, 5)
-    pe.LightEmission = 0.7
+        task.spawn(function()
+            while folder.Parent == head do
+                pe.Acceleration = head.CFrame:VectorToWorldSpace(direction) * 2.2
+                task.wait(0.03)
+            end
+        end)
+    end
+
+    makeEmitter(Vector3.new(-1, 0.05, 0))
+    makeEmitter(Vector3.new(1, 0.05, 0))
+    makeEmitter(Vector3.new(0, 0.05, -1))
+    makeEmitter(Vector3.new(0, 0.05, 1))
+    makeEmitter(Vector3.new(1, 0.12, -0.5))
 end
 
 local Lg = game:GetService("Lighting")
