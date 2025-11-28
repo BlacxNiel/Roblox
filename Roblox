@@ -446,3 +446,25 @@ if L.Character then
     Freeze_tool()
     adjustHipHeight(L.Character)
 end
+
+local vu = game:GetService("VirtualUser")
+local AntiAFK = false
+
+P.LocalPlayer.Idled:Connect(function()
+    if AntiAFK then
+        vu:CaptureController()
+        vu:ClickButton2(Vector2.new())
+    end
+end)
+
+U.InputBegan:Connect(function(input, g)
+    if g then return end
+    if input.KeyCode == Enum.KeyCode.F6 then
+        AntiAFK = not AntiAFK
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Anti AFK",
+            Text = AntiAFK and "Activado" or "Desactivado",
+            Duration = 3
+        })
+    end
+end)
