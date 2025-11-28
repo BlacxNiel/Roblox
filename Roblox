@@ -460,7 +460,6 @@ end)
 U.InputBegan:Connect(function(input, g)
     if g then return end
 
-    -- Activar/desactivar cuando mantienes TAB y presionas P
     if input.KeyCode == Enum.KeyCode.P and U:IsKeyDown(Enum.KeyCode.Tab) then
         AntiAFK = not AntiAFK
 
