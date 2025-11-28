@@ -450,6 +450,9 @@ end
 local vu = game:GetService("VirtualUser")
 local AntiAFK = false
 
+local P = game:GetService("Players")
+local U = game:GetService("UserInputService")
+
 P.LocalPlayer.Idled:Connect(function()
     if AntiAFK then
         vu:CaptureController()
@@ -459,7 +462,7 @@ end)
 
 U.InputBegan:Connect(function(input, g)
     if g then return end
-    if input.KeyCode == Enum.KeyCode.F6 then
+    if U:IsKeyDown(Enum.KeyCode.Tab) and input.KeyCode == Enum.KeyCode.P then
         AntiAFK = not AntiAFK
         game:GetService("StarterGui"):SetCore("SendNotification", {
             Title = "Anti AFK",
