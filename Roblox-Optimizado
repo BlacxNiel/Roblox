@@ -485,15 +485,19 @@ task.spawn(function()
     end
 end)
 
-local FB_original = {
-    Ambient = Lg.Ambient,
-    ColorShift_Top = Lg.ColorShift_Top,
-    ColorShift_Bottom = Lg.ColorShift_Bottom,
-    FogEnd = Lg.FogEnd,
-    FogStart = Lg.FogStart,
-    ClockTime = Lg.ClockTime,
-    GlobalShadows = Lg.GlobalShadows
-}
+local FB_original = {}
+
+local function FB_capture()
+    FB_original = {
+        Ambient = Lg.Ambient,
+        ColorShift_Top = Lg.ColorShift_Top,
+        ColorShift_Bottom = Lg.ColorShift_Bottom,
+        FogEnd = Lg.FogEnd,
+        FogStart = Lg.FogStart,
+        ClockTime = Lg.ClockTime,
+        GlobalShadows = Lg.GlobalShadows
+    }
+end
 
 local FB_on = false
 
@@ -513,12 +517,13 @@ local function FB_restore()
     end
 end
 
-Lg.LightingChanged:Connect(function()
-    if FB_on then FB_apply() end
+Lg:GetPropertyChangedSignal("Ambient"):Connect(function()
+    if not FB_on then FB_capture() end
 end)
 
 local function FB_tool()
     if L.Backpack:FindFirstChild("FullBright") then return end
+    FB_capture()
     local t = Instance.new("Tool")
     t.RequiresHandle = false
     t.Name = "FullBright"
