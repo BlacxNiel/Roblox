@@ -520,7 +520,7 @@ local FB_original = {
     GlobalShadows = Lg.GlobalShadows
 }
 
-local FB_on = true
+local FB_on = false
 
 local function FB_apply()
     Lg.Ambient = Cb
