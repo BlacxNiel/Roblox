@@ -495,7 +495,7 @@ local FB_original = {
     GlobalShadows = Lg.GlobalShadows
 }
 
-local FB_on = true
+local FB_on = false
 
 local function FB_apply()
     Lg.Ambient = Cb
@@ -516,8 +516,6 @@ end
 Lg.LightingChanged:Connect(function()
     if FB_on then FB_apply() end
 end)
-
-FB_apply()
 
 local function FB_tool()
     if L.Backpack:FindFirstChild("FullBright") then return end
