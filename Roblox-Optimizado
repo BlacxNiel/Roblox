@@ -700,7 +700,7 @@ local chatEnabled = true
 
 U.InputBegan:Connect(function(input, gp)
     if gp then return end
-    if input.KeyCode == Enum.KeyCode.Period then
+    if input.KeyCode == Enum.KeyCode.Comma then
         chatEnabled = not chatEnabled
         SG:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, chatEnabled)
     end
