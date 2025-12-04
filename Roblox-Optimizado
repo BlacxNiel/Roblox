@@ -586,12 +586,106 @@ local function adjustHipHeight(c)
     end
 end
 
+local AnimFrozen = false
+local AnimConn, SavedAnimate
+
+local function getHumanoid(c)
+    return c and c:FindFirstChildOfClass("Humanoid")
+end
+
+local function disableAnimate(c)
+    local s = c:FindFirstChild("Animate")
+    if s then
+        SavedAnimate = s
+        s.Disabled = true
+    end
+end
+
+local function enableAnimate(c)
+    local s = SavedAnimate or c:FindFirstChild("Animate")
+    if s then s.Disabled = false end
+    SavedAnimate = nil
+end
+
+local function forceIdle(c)
+    local hum = getHumanoid(c)
+    if not hum then return end
+    local anim = c:FindFirstChild("Animate")
+    if not anim then return end
+    local idle = anim:FindFirstChild("idle")
+    if not idle then return end
+    local obj = idle:FindFirstChildOfClass("Animation")
+    if not obj then return end
+    hum:LoadAnimation(obj):Play(0)
+    task.wait(0.08)
+end
+
+local function stopAll(h)
+    for _, t in ipairs(h:GetPlayingAnimationTracks()) do
+        t:Stop(0)
+    end
+end
+
+local function FreezeAnims(c)
+    local hum = getHumanoid(c)
+    if not hum then return end
+    disableAnimate(c)
+    forceIdle(c)
+    stopAll(hum)
+    if AnimConn then AnimConn:Disconnect() end
+    AnimConn = hum.AnimationPlayed:Connect(function(t)
+        task.defer(function() t:Stop(0) end)
+    end)
+end
+
+local function UnfreezeAnims(c)
+    local hum = getHumanoid(c)
+    if not hum then return end
+    if AnimConn then AnimConn:Disconnect() end
+    enableAnimate(c)
+    local old = hum:FindFirstChildOfClass("Animator")
+    if old then old:Destroy() end
+    Instance.new("Animator", hum)
+    task.wait(0.1)
+    hum:ChangeState(Enum.HumanoidStateType.GettingUp)
+    task.wait(0.05)
+    hum:ChangeState(Enum.HumanoidStateType.Running)
+end
+
+local function FreezeAnimTool()
+    if L.Backpack:FindFirstChild("Freeze Animations") then return end
+    local t = Instance.new("Tool")
+    t.RequiresHandle = false
+    t.Name = "Freeze Animations"
+    t.Activated:Connect(function()
+        local c = L.Character
+        if not c then return end
+        AnimFrozen = not AnimFrozen
+        if AnimFrozen then
+            FreezeAnims(c)
+        else
+            UnfreezeAnims(c)
+        end
+    end)
+    t.Parent = L.Backpack
+end
+
+L.CharacterAdded:Connect(function(c)
+    task.wait(0.2)
+    FreezeAnimTool()
+    if AnimFrozen then
+        task.wait(0.3)
+        FreezeAnims(c)
+    end
+end)
+
 L.CharacterAdded:Connect(function(c)
     task.wait(.15)
     FB_tool()
     TP_tool()
     Freeze_tool()
     adjustHipHeight(c)
+    FreezeAnimTool()
 end)
 
 if L.Character then
@@ -599,6 +693,7 @@ if L.Character then
     TP_tool()
     Freeze_tool()
     adjustHipHeight(L.Character)
+    FreezeAnimTool()
 end
 
 local vu = game:GetService("VirtualUser")
