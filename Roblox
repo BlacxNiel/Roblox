@@ -544,6 +544,17 @@ if L.Character then
     FreezeAnimTool()
 end
 
+local SG = game:GetService("StarterGui")
+local chatEnabled = true
+
+U.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.Period then
+        chatEnabled = not chatEnabled
+        SG:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, chatEnabled)
+    end
+end)
+
 local vu = game:GetService("VirtualUser")
 local AntiAFK = false
 
