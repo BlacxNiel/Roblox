@@ -643,9 +643,8 @@ local function UnfreezeAnims(c)
     if not hum then return end
     if AnimConn then AnimConn:Disconnect() end
     enableAnimate(c)
-    local old = hum:FindFirstChildOfClass("Animator")
-    if old then old:Destroy() end
-    Instance.new("Animator", hum)
+    local desc = hum:GetAppliedDescription()
+    hum:ApplyDescription(desc)
     task.wait(0.1)
     hum:ChangeState(Enum.HumanoidStateType.GettingUp)
     task.wait(0.05)
