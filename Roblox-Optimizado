@@ -669,6 +669,12 @@ local function FreezeAnimTool()
     t.Parent = L.Backpack
 end
 
+L.CharacterAdded:Connect(function()
+    task.wait(0.2)
+    BP = L:WaitForChild("Backpack")
+    if hidden then ToggleTools(true) end
+end)
+
 L.CharacterAdded:Connect(function(c)
     task.wait(.15)
     FB_tool()
