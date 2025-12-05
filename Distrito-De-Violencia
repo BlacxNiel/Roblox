@@ -586,7 +586,7 @@ UIS.InputBegan:Connect(function(input, gp)
 end)
 
 local function FB_tool()
-    if L.Backpack:FindFirstChild("FullBright") then return end
+    if L.Backpack:FindFirstChild("FullBright") or HiddenFolder:FindFirstChild("FullBright") then return end
     FB_capture()
     local t = Instance.new("Tool")
     t.RequiresHandle = false
