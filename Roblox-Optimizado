@@ -670,15 +670,6 @@ local function FreezeAnimTool()
 end
 
 L.CharacterAdded:Connect(function(c)
-    task.wait(0.2)
-    FreezeAnimTool()
-    if AnimFrozen then
-        task.wait(0.3)
-        FreezeAnims(c)
-    end
-end)
-
-L.CharacterAdded:Connect(function(c)
     task.wait(.15)
     FB_tool()
     TP_tool()
