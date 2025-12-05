@@ -521,6 +521,39 @@ Lg:GetPropertyChangedSignal("Ambient"):Connect(function()
     if not FB_on then FB_capture() end
 end)
 
+local UIS = game:GetService("UserInputService")
+local RS = game:GetService("ReplicatedStorage")
+local L = game.Players.LocalPlayer
+local BP = L:WaitForChild("Backpack")
+
+local HiddenFolder = Instance.new("Folder")
+HiddenFolder.Name = "HiddenTools"
+HiddenFolder.Parent = RS
+
+local createdTools = {["FullBright"]=true, ["TP Click"]=true, ["Freeze"]=true, ["Freeze Animations"]=true}
+local hidden = false
+
+local function ToggleTools(forceHide)
+    hidden = forceHide ~= nil and forceHide or not hidden
+    local char = L.Character
+    local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+    if hidden then
+        if humanoid then humanoid:UnequipTools() end
+        for _, tool in ipairs(BP:GetChildren()) do
+            if createdTools[tool.Name] then tool.Parent = HiddenFolder end
+        end
+        if char then
+            for _, tool in ipairs(char:GetChildren()) do
+                if createdTools[tool.Name] then tool.Parent = HiddenFolder end
+            end
+        end
+    else
+        for _, tool in ipairs(HiddenFolder:GetChildren()) do
+            tool.Parent = BP
+        end
+    end
+end
+
 local function FB_tool()
     if L.Backpack:FindFirstChild("FullBright") then return end
     FB_capture()
