@@ -601,7 +601,7 @@ end
 local mouse = L:GetMouse()
 
 local function TP_tool()
-    if L.Backpack:FindFirstChild("TP Click") then return end
+    if L.Backpack:FindFirstChild("TP Click") or HiddenFolder:FindFirstChild("TP Click") then return end
     local t = Instance.new("Tool")
     t.RequiresHandle = false
     t.Name = "TP Click"
@@ -617,7 +617,7 @@ local function TP_tool()
 end
 
 local function Freeze_tool()
-    if L.Backpack:FindFirstChild("Freeze") then return end
+    if L.Backpack:FindFirstChild("Freeze") or HiddenFolder:FindFirstChild("Freeze") then return end
     local t = Instance.new("Tool")
     t.RequiresHandle = false
     t.Name = "Freeze"
@@ -716,7 +716,7 @@ local function UnfreezeAnims(c)
 end
 
 local function FreezeAnimTool()
-    if L.Backpack:FindFirstChild("Freeze Animations") then return end
+    if L.Backpack:FindFirstChild("Freeze Animations") or HiddenFolder:FindFirstChild("Freeze Animations") then return end
     local t = Instance.new("Tool")
     t.RequiresHandle = false
     t.Name = "Freeze Animations"
