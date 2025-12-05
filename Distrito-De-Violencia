@@ -579,6 +579,12 @@ local function ToggleTools(forceHide)
     end
 end
 
+UIS.InputBegan:Connect(function(input, gp)
+    if not gp and input.KeyCode == Enum.KeyCode.Zero and UIS:IsKeyDown(Enum.KeyCode.LeftControl) then
+        ToggleTools()
+    end
+end)
+
 local function FB_tool()
     if L.Backpack:FindFirstChild("FullBright") then return end
     FB_capture()
