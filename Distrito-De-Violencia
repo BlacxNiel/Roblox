@@ -760,6 +760,7 @@ local SG = game:GetService("StarterGui")
 SG:SetCoreGuiEnabled(Enum.CoreGuiType.Captures, false)
 SG:SetCoreGuiEnabled(Enum.CoreGuiType.SelfView, false)
 SG:SetCoreGuiEnabled(Enum.CoreGuiType.Health, false)
+SG:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false)
 local chatEnabled = true
 
 U.InputBegan:Connect(function(input, gp)
