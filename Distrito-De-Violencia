@@ -32,36 +32,33 @@ if not game:IsLoaded() then
     repeat task.wait() until game:IsLoaded()
 end
 
-local CoreGui = game:GetService("CoreGui")
+local C=game:GetService("CoreGui")
+local B,I=1,1
 
-local BG_TRANSPARENCY = 1
-local IMG_TRANSPARENCY = 1
-
-local function lock(v)
+local function L(v)
 	if v:IsA("GuiObject") then
-		v.BackgroundTransparency = BG_TRANSPARENCY
+		v.BackgroundTransparency=B
 		v:GetPropertyChangedSignal("BackgroundTransparency"):Connect(function()
-			if v.BackgroundTransparency ~= BG_TRANSPARENCY then
-				v.BackgroundTransparency = BG_TRANSPARENCY
+			if v.BackgroundTransparency~=B then
+				v.BackgroundTransparency=B
 			end
 		end)
 	end
-
 	if v:IsA("ImageLabel") or v:IsA("ImageButton") then
-		v.ImageTransparency = IMG_TRANSPARENCY
+		v.ImageTransparency=I
 		v:GetPropertyChangedSignal("ImageTransparency"):Connect(function()
-			if v.ImageTransparency ~= IMG_TRANSPARENCY then
-				v.ImageTransparency = IMG_TRANSPARENCY
+			if v.ImageTransparency~=I then
+				v.ImageTransparency=I
 			end
 		end)
 	end
 end
 
-for _, v in ipairs(CoreGui:GetDescendants()) do
-	lock(v)
+for _,v in ipairs(C:GetDescendants()) do
+	L(v)
 end
 
-CoreGui.DescendantAdded:Connect(lock)
+C.DescendantAdded:Connect(L)
 
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
