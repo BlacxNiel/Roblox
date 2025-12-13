@@ -10,36 +10,43 @@ local T=false
 local F=Color3.fromRGB(255,105,180)
 local O=Color3.fromRGB(255,150,200)
 
-local CoreGui = game:GetService("CoreGui")
+local CG=game:GetService("CoreGui")
+local BG,IMG=1,1
 
-local BG_TRANSPARENCY = 1
-local IMG_TRANSPARENCY = 1
+local RG=CG:WaitForChild("RobloxGui",5)
+local BP=RG and RG:FindFirstChild("Backpack")
+
+local function isBP(v)
+	return BP and v:IsDescendantOf(BP)
+end
 
 local function lock(v)
+	if isBP(v) then return end
+
 	if v:IsA("GuiObject") then
-		v.BackgroundTransparency = BG_TRANSPARENCY
+		v.BackgroundTransparency=BG
 		v:GetPropertyChangedSignal("BackgroundTransparency"):Connect(function()
-			if v.BackgroundTransparency ~= BG_TRANSPARENCY then
-				v.BackgroundTransparency = BG_TRANSPARENCY
+			if v.BackgroundTransparency~=BG then
+				v.BackgroundTransparency=BG
 			end
 		end)
 	end
 
 	if v:IsA("ImageLabel") or v:IsA("ImageButton") then
-		v.ImageTransparency = IMG_TRANSPARENCY
+		v.ImageTransparency=IMG
 		v:GetPropertyChangedSignal("ImageTransparency"):Connect(function()
-			if v.ImageTransparency ~= IMG_TRANSPARENCY then
-				v.ImageTransparency = IMG_TRANSPARENCY
+			if v.ImageTransparency~=IMG then
+				v.ImageTransparency=IMG
 			end
 		end)
 	end
 end
 
-for _, v in ipairs(CoreGui:GetDescendants()) do
+for _,v in ipairs(CG:GetDescendants()) do
 	lock(v)
 end
 
-CoreGui.DescendantAdded:Connect(lock)
+CG.DescendantAdded:Connect(lock)
 
 local ATT_NAME = "Particles"
 
