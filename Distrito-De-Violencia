@@ -32,33 +32,45 @@ if not game:IsLoaded() then
     repeat task.wait() until game:IsLoaded()
 end
 
-local C=game:GetService("CoreGui")
-local B,I=1,1
+local CoreGui = game:GetService("CoreGui")
 
-local function L(v)
+local BG_TRANSPARENCY = 1
+local IMG_TRANSPARENCY = 1
+local BACKPACK_BG = 1
+local BACKPACK_IMG = 0
+
+local RobloxGui = CoreGui:WaitForChild("RobloxGui", 5)
+local BackpackGui = RobloxGui and RobloxGui:FindFirstChild("Backpack")
+
+local function lock(v)
+	local inBackpack = BackpackGui and v:IsDescendantOf(BackpackGui)
+
 	if v:IsA("GuiObject") then
-		v.BackgroundTransparency=B
+		local target = inBackpack and BACKPACK_BG or BG_TRANSPARENCY
+		v.BackgroundTransparency = target
 		v:GetPropertyChangedSignal("BackgroundTransparency"):Connect(function()
-			if v.BackgroundTransparency~=B then
-				v.BackgroundTransparency=B
+			if v.BackgroundTransparency ~= target then
+				v.BackgroundTransparency = target
 			end
 		end)
 	end
+
 	if v:IsA("ImageLabel") or v:IsA("ImageButton") then
-		v.ImageTransparency=I
+		local target = inBackpack and BACKPACK_IMG or IMG_TRANSPARENCY
+		v.ImageTransparency = target
 		v:GetPropertyChangedSignal("ImageTransparency"):Connect(function()
-			if v.ImageTransparency~=I then
-				v.ImageTransparency=I
+			if v.ImageTransparency ~= target then
+				v.ImageTransparency = target
 			end
 		end)
 	end
 end
 
-for _,v in ipairs(C:GetDescendants()) do
-	L(v)
+for _, v in ipairs(CoreGui:GetDescendants()) do
+	lock(v)
 end
 
-C.DescendantAdded:Connect(L)
+CoreGui.DescendantAdded:Connect(lock)
 
 local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
