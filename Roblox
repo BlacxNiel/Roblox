@@ -10,43 +10,45 @@ local T=false
 local F=Color3.fromRGB(255,105,180)
 local O=Color3.fromRGB(255,150,200)
 
-local CG=game:GetService("CoreGui")
-local BG,IMG=1,1
+local CoreGui = game:GetService("CoreGui")
 
-local RG=CG:WaitForChild("RobloxGui",5)
-local BP=RG and RG:FindFirstChild("Backpack")
+local BG_TRANSPARENCY = 1
+local IMG_TRANSPARENCY = 1
+local BACKPACK_BG = 1
+local BACKPACK_IMG = 0
 
-local function isBP(v)
-	return BP and v:IsDescendantOf(BP)
-end
+local RobloxGui = CoreGui:WaitForChild("RobloxGui", 5)
+local BackpackGui = RobloxGui and RobloxGui:FindFirstChild("Backpack")
 
 local function lock(v)
-	if isBP(v) then return end
+	local inBackpack = BackpackGui and v:IsDescendantOf(BackpackGui)
 
 	if v:IsA("GuiObject") then
-		v.BackgroundTransparency=BG
+		local target = inBackpack and BACKPACK_BG or BG_TRANSPARENCY
+		v.BackgroundTransparency = target
 		v:GetPropertyChangedSignal("BackgroundTransparency"):Connect(function()
-			if v.BackgroundTransparency~=BG then
-				v.BackgroundTransparency=BG
+			if v.BackgroundTransparency ~= target then
+				v.BackgroundTransparency = target
 			end
 		end)
 	end
 
 	if v:IsA("ImageLabel") or v:IsA("ImageButton") then
-		v.ImageTransparency=IMG
+		local target = inBackpack and BACKPACK_IMG or IMG_TRANSPARENCY
+		v.ImageTransparency = target
 		v:GetPropertyChangedSignal("ImageTransparency"):Connect(function()
-			if v.ImageTransparency~=IMG then
-				v.ImageTransparency=IMG
+			if v.ImageTransparency ~= target then
+				v.ImageTransparency = target
 			end
 		end)
 	end
 end
 
-for _,v in ipairs(CG:GetDescendants()) do
+for _, v in ipairs(CoreGui:GetDescendants()) do
 	lock(v)
 end
 
-CG.DescendantAdded:Connect(lock)
+CoreGui.DescendantAdded:Connect(lock)
 
 local ATT_NAME = "Particles"
 
