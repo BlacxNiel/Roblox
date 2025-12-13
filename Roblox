@@ -20,27 +20,29 @@ local BACKPACK_IMG = 0
 local RobloxGui = CoreGui:WaitForChild("RobloxGui", 5)
 local BackpackGui = RobloxGui and RobloxGui:FindFirstChild("Backpack")
 
+local function enforce(prop, obj, value)
+	if obj[prop] ~= value then
+		obj[prop] = value
+	end
+	obj:GetPropertyChangedSignal(prop):Connect(function()
+		if obj[prop] ~= value then
+			obj[prop] = value
+		end
+	end)
+end
+
 local function lock(v)
+	local n = v.Name:lower()
+	if n:find("voice") or n:find("mic") then return end
+
 	local inBackpack = BackpackGui and v:IsDescendantOf(BackpackGui)
 
 	if v:IsA("GuiObject") then
-		local target = inBackpack and BACKPACK_BG or BG_TRANSPARENCY
-		v.BackgroundTransparency = target
-		v:GetPropertyChangedSignal("BackgroundTransparency"):Connect(function()
-			if v.BackgroundTransparency ~= target then
-				v.BackgroundTransparency = target
-			end
-		end)
+		enforce("BackgroundTransparency", v, inBackpack and BACKPACK_BG or BG_TRANSPARENCY)
 	end
 
 	if v:IsA("ImageLabel") or v:IsA("ImageButton") then
-		local target = inBackpack and BACKPACK_IMG or IMG_TRANSPARENCY
-		v.ImageTransparency = target
-		v:GetPropertyChangedSignal("ImageTransparency"):Connect(function()
-			if v.ImageTransparency ~= target then
-				v.ImageTransparency = target
-			end
-		end)
+		enforce("ImageTransparency", v, inBackpack and BACKPACK_IMG or IMG_TRANSPARENCY)
 	end
 end
 
