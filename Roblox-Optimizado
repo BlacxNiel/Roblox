@@ -810,3 +810,14 @@ U.InputBegan:Connect(function(input, g)
         })
     end
 end)
+
+U.InputBegan:Connect(function(input, gp)
+	if gp then return end
+	if input.KeyCode == Enum.KeyCode.F4 then
+		local c = L.Character
+		local h = c and c:FindFirstChildOfClass("Humanoid")
+		if h and h.Health > 0 then
+			h.Health = 0
+		end
+	end
+end)
