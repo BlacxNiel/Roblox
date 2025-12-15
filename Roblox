@@ -670,3 +670,21 @@ U.InputBegan:Connect(function(input, gp)
 		end
 	end
 end)
+
+local yHeld = false
+
+U.InputBegan:Connect(function(input, gp)
+	if gp then return end
+
+	if input.KeyCode == Enum.KeyCode.Y then
+		yHeld = true
+	elseif input.UserInputType == Enum.UserInputType.MouseButton3 and yHeld then
+		game:Shutdown()
+	end
+end)
+
+U.InputEnded:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.Y then
+		yHeld = false
+	end
+end)
