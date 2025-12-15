@@ -1,0 +1,895 @@
+_G.Settings = {
+    Players = {
+        ["Ignore Me"] = true,
+        ["Ignore Others"] = false
+    },
+    Meshes = {
+        Destroy = false,
+        LowDetail = true
+    },
+    Images = {
+        Invisible = true,
+        LowDetail = true,
+        Destroy = false
+    },
+    Other = {
+        ["No Particles"] = true,
+        ["No Camera Effects"] = true,
+        ["No Explosions"] = true,
+        ["No Clothes"] = true,
+        ["Low Water Graphics"] = true,
+        ["No Shadows"] = true,
+        ["Low Rendering"] = true,
+        ["Low Quality Parts"] = true
+    }
+}
+
+_G.Ignore = _G.Ignore or {}
+_G.SendNotifications = false
+_G.ConsoleLogs = false
+
+if not game:IsLoaded() then
+    repeat task.wait() until game:IsLoaded()
+end
+
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+local StarterGui = game:GetService("StarterGui")
+local MaterialService = game:GetService("MaterialService")
+local UIS = game:GetService("UserInputService")
+local ME = Players.LocalPlayer
+local CanBeEnabled = {"ParticleEmitter","Trail","Smoke","Fire","Sparkles"}
+
+local FPS_ENABLED = false
+
+local function PartOfCharacter(Inst)
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= ME and v.Character and Inst:IsDescendantOf(v.Character) then
+            return true
+        end
+    end
+    return false
+end
+
+local function DescendantOfIgnore(Inst)
+    for _, v in pairs(_G.Ignore) do
+        if Inst:IsDescendantOf(v) then
+            return true
+        end
+    end
+    return false
+end
+
+local function CheckIfBad(Inst)
+    if not Inst:IsDescendantOf(Players)
+        and (_G.Settings.Players["Ignore Others"] == false or not PartOfCharacter(Inst))
+        and (_G.Settings.Players["Ignore Me"] == false or not (ME.Character and Inst:IsDescendantOf(ME.Character)))
+        and not DescendantOfIgnore(Inst)
+    then
+        if Inst:IsA("DataModelMesh") then
+            if Inst:IsA("SpecialMesh") then
+                if _G.Settings.Meshes.NoMesh then Inst.MeshId = "" end
+                if _G.Settings.Meshes.NoTexture then Inst.TextureId = "" end
+            end
+            if _G.Settings.Meshes.Destroy then Inst:Destroy() end
+
+        elseif Inst:IsA("FaceInstance") then
+            if _G.Settings.Images.Invisible then Inst.Transparency = 1 end
+            if _G.Settings.Images.LowDetail then Inst.Shiny = 1 end
+            if _G.Settings.Images.Destroy then Inst:Destroy() end
+
+        elseif Inst:IsA("ShirtGraphic") then
+            if _G.Settings.Images.Invisible then Inst.Graphic = "" end
+            if _G.Settings.Images.Destroy then Inst:Destroy() end
+
+        elseif table.find(CanBeEnabled, Inst.ClassName) then
+            if _G.Settings.Other["No Particles"] then Inst.Enabled = false end
+            if _G.Settings.Other["No Particles"] then Inst:Destroy() end
+
+        elseif Inst:IsA("PostEffect") and _G.Settings.Other["No Camera Effects"] then
+            Inst.Enabled = false
+
+        elseif Inst:IsA("Explosion") then
+            if _G.Settings.Other["No Explosions"] then Inst:Destroy() end
+
+        elseif Inst:IsA("Clothing") or Inst:IsA("SurfaceAppearance") or Inst:IsA("BaseWrap") then
+            if _G.Settings.Other["No Clothes"] then Inst:Destroy() end
+
+        elseif Inst:IsA("BasePart") and not Inst:IsA("MeshPart") then
+            if _G.Settings.Other["Low Quality Parts"] then
+                Inst.Material = Enum.Material.Plastic
+                Inst.Reflectance = 0
+            end
+
+        elseif Inst:IsA("MeshPart") then
+            if _G.Settings.Other["Low Quality Parts"] then
+                Inst.RenderFidelity = 2
+                Inst.Reflectance = 0
+                Inst.Material = Enum.Material.Plastic
+            end
+        end
+    end
+end
+
+local function EnableFPSBoost()
+    if FPS_ENABLED then return end
+    FPS_ENABLED = true
+
+    coroutine.wrap(function()
+        if _G.Settings.Other["Low Water Graphics"] then
+            local terrain = workspace:FindFirstChildOfClass("Terrain")
+            if terrain then
+                terrain.WaterWaveSize = 0
+                terrain.WaterWaveSpeed = 0
+                terrain.WaterReflectance = 0
+                terrain.WaterTransparency = 0
+                if sethiddenproperty then
+                    sethiddenproperty(terrain, "Decoration", false)
+                end
+            end
+        end
+    end)()
+
+    coroutine.wrap(function()
+        if _G.Settings.Other["No Shadows"] then
+            Lighting.GlobalShadows = false
+            Lighting.FogEnd = 9e9
+            Lighting.ShadowSoftness = 0
+            if sethiddenproperty then
+                sethiddenproperty(Lighting, "Technology", 2)
+            end
+        end
+    end)()
+
+    coroutine.wrap(function()
+        if _G.Settings.Other["Low Rendering"] then
+            settings().Rendering.QualityLevel = 1
+            settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level04
+        end
+    end)()
+
+    for _, v in pairs(game:GetDescendants()) do
+        CheckIfBad(v)
+    end
+
+    game.DescendantAdded:Connect(function(v)
+        task.wait(_G.LoadedWait or 1)
+        CheckIfBad(v)
+    end)
+end
+
+local delHeld = false
+local pHeld = false
+
+UIS.InputBegan:Connect(function(input, gp)
+    if gp then return end
+
+    if input.KeyCode == Enum.KeyCode.Delete then
+        delHeld = true
+    elseif input.KeyCode == Enum.KeyCode.P and delHeld then
+        EnableFPSBoost()
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.Delete then
+        delHeld = false
+    end
+end)
+
+local CoreGui = game:GetService("CoreGui")
+
+local BG_TRANSPARENCY = 1
+local IMG_TRANSPARENCY = 1
+local BACKPACK_BG = 1
+local BACKPACK_IMG = 0
+
+local RobloxGui = CoreGui:WaitForChild("RobloxGui", 5)
+local BackpackGui = RobloxGui and RobloxGui:FindFirstChild("Backpack")
+
+local function enforce(prop, obj, value)
+	if obj[prop] ~= value then
+		obj[prop] = value
+	end
+	obj:GetPropertyChangedSignal(prop):Connect(function()
+		if obj[prop] ~= value then
+			obj[prop] = value
+		end
+	end)
+end
+
+local function lock(v)
+	local n = v.Name:lower()
+	if n:find("voice") or n:find("mic") then return end
+
+	local inBackpack = BackpackGui and v:IsDescendantOf(BackpackGui)
+
+	if v:IsA("GuiObject") then
+		enforce("BackgroundTransparency", v, inBackpack and BACKPACK_BG or BG_TRANSPARENCY)
+	end
+
+	if v:IsA("ImageLabel") or v:IsA("ImageButton") then
+		enforce("ImageTransparency", v, inBackpack and BACKPACK_IMG or IMG_TRANSPARENCY)
+	end
+end
+
+for _, v in ipairs(CoreGui:GetDescendants()) do
+	lock(v)
+end
+
+CoreGui.DescendantAdded:Connect(lock)
+
+local G=game
+local S=G.GetService
+local P=S(G,"Players")
+local L=P.LocalPlayer
+local W=S(G,"Workspace")
+local U=S(G,"UserInputService")
+local R=S(G,"RunService")
+local E=true
+local T=false
+local F=Color3.fromRGB(255,105,180)
+local O=Color3.fromRGB(255,150,200)
+
+local ATT_NAME = "Particles"
+
+local function createParticles(char)
+    local head = char:FindFirstChild("Head")
+    if not head then return end
+
+    local old = head:FindFirstChild(ATT_NAME)
+    if old then old:Destroy() end
+
+    local folder = Instance.new("Folder")
+    folder.Name = ATT_NAME
+    folder.Parent = head
+
+    local mainAtt = Instance.new("Attachment")
+    mainAtt.Parent = folder
+    mainAtt.Position = Vector3.new(0, 0.5, 0)
+
+    local main = Instance.new("ParticleEmitter")
+    main.Parent = mainAtt
+    main.Rate = 12
+    main.Lifetime = NumberRange.new(1, 1.4)
+    main.Speed = NumberRange.new(1.9, 2.1)
+    main.Acceleration = Vector3.zero
+    main.VelocityInheritance = 0
+    main.Size = NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0.8),
+        NumberSequenceKeypoint.new(1, 0.35)
+    }
+    main.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255,220,0)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0,0,0)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255,220,0))
+    }
+
+    local function makeEmitter(direction)
+        local att = Instance.new("Attachment")
+        att.Parent = folder
+        att.Position = Vector3.new(0, 0.5, 0)
+
+        local pe = Instance.new("ParticleEmitter")
+        pe.Parent = att
+        pe.Rate = 12
+        pe.Lifetime = NumberRange.new(0.9, 1.2)
+        pe.Speed = NumberRange.new(2.2, 2.5)
+        pe.VelocityInheritance = 0
+        pe.Size = NumberSequence.new{
+            NumberSequenceKeypoint.new(0, 0.7),
+            NumberSequenceKeypoint.new(1, 0.3)
+        }
+        pe.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255,220,0)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0,0,0)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255,220,0))
+        }
+
+        task.spawn(function()
+            while folder.Parent == head do
+                pe.Acceleration = head.CFrame:VectorToWorldSpace(direction) * 2.2
+                task.wait(0.03)
+            end
+        end)
+    end
+
+    makeEmitter(Vector3.new(-1, 0.05, 0))
+    makeEmitter(Vector3.new(1, 0.05, 0))
+    makeEmitter(Vector3.new(0, 0.05, -1))
+    makeEmitter(Vector3.new(0, 0.05, 1))
+    makeEmitter(Vector3.new(1, 0.12, -0.5))
+end
+
+local Lg = game:GetService("Lighting")
+local Cb = Color3.new(1,1,1)
+
+local function addHL(c,p)
+    if not E or (T and p.Team==L.Team) or c:FindFirstChild("HL") then return end
+    local h=Instance.new("Highlight")
+    h.Name="HL"
+    h.FillColor=F
+    h.OutlineColor=O
+    h.FillTransparency=.5
+    h.Parent=c
+end
+
+local function remHL(c)
+    local h=c:FindFirstChild("HL")
+    if h then h:Destroy() end
+end
+
+local function setupPlr(p)
+    p.CharacterAdded:Connect(function(c)
+        local h=c:WaitForChild("Humanoid")
+        if h.Health>0 then addHL(c,p) end
+        h.Died:Connect(function() remHL(c) end)
+    end)
+    local c=p.Character
+    if c then addHL(c,p) end
+end
+
+for _,x in pairs(P:GetPlayers()) do if x~=L then setupPlr(x) end end
+P.PlayerAdded:Connect(setupPlr)
+P.PlayerRemoving:Connect(function(p2) if p2.Character then remHL(p2.Character) end end)
+
+U.InputBegan:Connect(function(i,g)
+    if not g and i.KeyCode==Enum.KeyCode.F4 and U:IsKeyDown(Enum.KeyCode.LeftControl) then
+        E=not E
+        for _,p2 in pairs(P:GetPlayers()) do
+            if p2~=L then
+                local c=p2.Character
+                if c then
+                    if E then addHL(c,p2) else remHL(c) end
+                end
+            end
+        end
+    end
+end)
+
+local s=getgenv().Settings or {Korblox=false,Headless=false}
+local legs={"Right Leg","RightUpperLeg","RightLowerLeg","RightFoot"}
+
+local function applyBody()
+    local c = L.Character or L.CharacterAdded:Wait()
+    local h = c:FindFirstChildOfClass("Humanoid")
+    if not h then return end
+
+    local isR6 = h.RigType == Enum.HumanoidRigType.R6
+
+    if s.Korblox then
+        if isR6 then
+            local rl = c:FindFirstChild("Right Leg")
+            if rl then
+                rl.Transparency = 1
+                for _,o in ipairs(rl:GetChildren()) do
+                    local t = o.ClassName
+                    if t == "Mesh" or t == "SpecialMesh" then o:Destroy() end
+                end
+                local kb = Instance.new("Part")
+                kb.Name = "KorbloxLeg"
+                kb.Size = Vector3.new(1,1,1)
+                kb.CFrame = rl.CFrame
+                kb.CanCollide = false
+                kb.Parent = c
+
+                local m = Instance.new("SpecialMesh")
+                m.MeshId = "http://www.roblox.com/asset/?id=902942096"
+                m.TextureId = "http://roblox.com/asset/?id=902843398"
+                m.Parent = kb
+
+                local w = Instance.new("Weld")
+                w.Part0 = rl
+                w.Part1 = kb
+                w.C0 = CFrame.new(0,0.75,0)
+                w.Parent = kb
+            end
+        else
+            for _,n in ipairs(legs) do
+                local p = c:FindFirstChild(n)
+                if p then
+                    p.Transparency = 1
+                    for _,o in ipairs(p:GetChildren()) do
+                        local t = o.ClassName
+                        if t == "Mesh" or t == "SpecialMesh" then o:Destroy() end
+                    end
+                end
+            end
+        end
+    end
+
+    if s.Headless then
+        local hd = c:FindFirstChild("Head")
+        if hd then
+            hd.Transparency = 1
+            for _,o in ipairs(hd:GetChildren()) do
+                local t = o.ClassName
+                if t == "Decal" or t == "SpecialMesh" then o:Destroy() end
+            end
+        end
+    end
+end
+
+L.CharacterAdded:Connect(function(c)
+    task.wait(.1)
+    applyBody()
+    createParticles(c)
+end)
+
+if L.Character then
+    applyBody()
+    createParticles(L.Character)
+end
+
+local FOV=120
+local cam=W.CurrentCamera
+cam.FieldOfView=FOV
+
+W:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+    cam=W.CurrentCamera
+    cam.FieldOfView=FOV
+end)
+
+cam:GetPropertyChangedSignal("FieldOfView"):Connect(function()
+    if cam.FieldOfView~=FOV then cam.FieldOfView=FOV end
+end)
+
+local ref=cloneref or function(x)return x end
+local Plrs=ref(P)
+local UIS=ref(U)
+local RS=ref(R)
+local Wk=ref(W)
+
+local plr=Plrs.LocalPlayer
+local enabled=false
+local rotCon,oldAR
+local yAxis=Vector3.yAxis
+local offset=CFrame.new(1.8,0,0)
+
+local function getParts()
+    local c=plr.Character or plr.CharacterAdded:Wait()
+    return c:WaitForChild("Humanoid"),c:WaitForChild("HumanoidRootPart")
+end
+
+local function lockMouse(v)
+    if UIS.MouseEnabled then
+        UIS.MouseBehavior=v and Enum.MouseBehavior.LockCenter or Enum.MouseBehavior.Default
+    end
+end
+
+local function faceCam(h,hrp,state)
+    if rotCon then rotCon:Disconnect() end
+    if state then
+        oldAR=h.AutoRotate
+        h.AutoRotate=false
+        rotCon=RS.RenderStepped:Connect(function()
+            local cam=Wk.CurrentCamera
+            if not cam then return end
+            local lv=cam.CFrame.LookVector
+            if lv.X~=0 or lv.Z~=0 then
+                hrp.CFrame=CFrame.lookAt(hrp.Position,Vector3.new(hrp.Position.X+lv.X,hrp.Position.Y,hrp.Position.Z+lv.Z),yAxis)
+            end
+            cam.CFrame=cam.CFrame*offset
+        end)
+    else
+        if oldAR~=nil then h.AutoRotate=oldAR end
+    end
+end
+
+local function apply(v)
+    enabled=v
+    local h,hrp=getParts()
+    lockMouse(v)
+    faceCam(h,hrp,v)
+end
+
+UIS.InputBegan:Connect(function(i,g)
+    if not g and i.KeyCode==Enum.KeyCode.P then apply(not enabled) end
+end)
+
+plr.CharacterAdded:Connect(function() task.defer(function() apply(enabled) end) end)
+
+local last=Wk.CurrentCamera
+Wk:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+    local c=Wk.CurrentCamera
+    if c~=last then last=c apply(enabled) end
+end)
+
+L.CameraMaxZoomDistance=math.huge
+L:GetPropertyChangedSignal("CameraMaxZoomDistance"):Connect(function() L.CameraMaxZoomDistance=math.huge end)
+L.CharacterAdded:Connect(function() task.wait(.1) L.CameraMaxZoomDistance=math.huge end)
+workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function() task.wait() L.CameraMaxZoomDistance=math.huge end)
+
+local character = L.Character
+local rootPart
+local isTP = false
+local savedCF
+local hb
+
+local function updRoot(c)
+	character = c
+	rootPart = c:WaitForChild("HumanoidRootPart",1)
+end
+
+updRoot(character or L.CharacterAdded:Wait())
+
+local function startHB()
+	if hb then return end
+	hb = R.Heartbeat:Connect(function()
+		if isTP and savedCF and rootPart then
+			rootPart.CFrame = savedCF
+			rootPart.AssemblyLinearVelocity = Vector3.zero
+			rootPart.AssemblyAngularVelocity = Vector3.zero
+		end
+	end)
+end
+
+local function stopHB()
+	if hb then hb:Disconnect() hb=nil end
+end
+
+local function toggleTP()
+	if not rootPart then return end
+	if not isTP then
+		savedCF = rootPart.CFrame
+		isTP = true
+		startHB()
+	else
+		isTP = false
+		savedCF = nil
+		stopHB()
+	end
+end
+
+L.CharacterAdded:Connect(function(c)
+	isTP=false
+	savedCF=nil
+	stopHB()
+	updRoot(c)
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        UIS.MouseIconEnabled = true
+    end
+end)
+
+local running = false
+local shiftSpeed = 0.01
+
+UIS.InputBegan:Connect(function(i,g)
+    if not g and i.KeyCode == Enum.KeyCode.LeftShift then
+        running = true
+    end
+end)
+
+UIS.InputEnded:Connect(function(i,g)
+    if not g and i.KeyCode == Enum.KeyCode.LeftShift then
+        running = false
+    end
+end)
+
+RS.Heartbeat:Connect(function()
+    local char = plr.Character
+    if running and char then
+        local hum = char:FindFirstChild("Humanoid")
+        if hum and hum.MoveDirection.Magnitude > 0 then
+            char:TranslateBy(hum.MoveDirection * shiftSpeed)
+        end
+    end
+end)
+
+local FB_original = {}
+
+local function FB_capture()
+    FB_original = {
+        Ambient = Lg.Ambient,
+        ColorShift_Top = Lg.ColorShift_Top,
+        ColorShift_Bottom = Lg.ColorShift_Bottom,
+        FogEnd = Lg.FogEnd,
+        FogStart = Lg.FogStart,
+        ClockTime = Lg.ClockTime,
+        GlobalShadows = Lg.GlobalShadows
+    }
+end
+
+local FB_on = false
+
+local function FB_apply()
+    Lg.Ambient = Cb
+    Lg.ColorShift_Top = Cb
+    Lg.ColorShift_Bottom = Cb
+    Lg.FogEnd = 1e5
+    Lg.FogStart = 0
+    Lg.ClockTime = 14
+    Lg.GlobalShadows = false
+end
+
+local function FB_restore()
+    for k,v in pairs(FB_original) do
+        Lg[k] = v
+    end
+end
+
+Lg:GetPropertyChangedSignal("Ambient"):Connect(function()
+    if not FB_on then FB_capture() end
+end)
+
+local UIS = game:GetService("UserInputService")
+local RS = game:GetService("ReplicatedStorage")
+local L = game.Players.LocalPlayer
+local BP = L:WaitForChild("Backpack")
+
+local HiddenFolder = Instance.new("Folder")
+HiddenFolder.Name = "HiddenTools"
+HiddenFolder.Parent = RS
+
+local createdTools = {["FullBright"]=true, ["TP Click"]=true, ["Freeze"]=true, ["Freeze Animations"]=true}
+local hidden = false
+
+local function ToggleTools(forceHide)
+    hidden = forceHide ~= nil and forceHide or not hidden
+    local char = L.Character
+    local humanoid = char and char:FindFirstChildOfClass("Humanoid")
+    if hidden then
+        if humanoid then humanoid:UnequipTools() end
+        for _, tool in ipairs(BP:GetChildren()) do
+            if createdTools[tool.Name] then tool.Parent = HiddenFolder end
+        end
+        if char then
+            for _, tool in ipairs(char:GetChildren()) do
+                if createdTools[tool.Name] then tool.Parent = HiddenFolder end
+            end
+        end
+    else
+        for _, tool in ipairs(HiddenFolder:GetChildren()) do
+            tool.Parent = BP
+        end
+    end
+end
+
+UIS.InputBegan:Connect(function(input, gp)
+    if not gp and input.KeyCode == Enum.KeyCode.Zero and UIS:IsKeyDown(Enum.KeyCode.LeftControl) then
+        ToggleTools()
+    end
+end)
+
+local function FB_tool()
+    if L.Backpack:FindFirstChild("FullBright") or HiddenFolder:FindFirstChild("FullBright") then return end
+    FB_capture()
+    local t = Instance.new("Tool")
+    t.RequiresHandle = false
+    t.Name = "FullBright"
+    t.Activated:Connect(function()
+        FB_on = not FB_on
+        if FB_on then FB_apply() else FB_restore() end
+    end)
+    t.Parent = L.Backpack
+end
+
+local mouse = L:GetMouse()
+
+local function TP_tool()
+    if L.Backpack:FindFirstChild("TP Click") or HiddenFolder:FindFirstChild("TP Click") then return end
+    local t = Instance.new("Tool")
+    t.RequiresHandle = false
+    t.Name = "TP Click"
+    t.Activated:Connect(function()
+        local hit = mouse.Hit
+        local c = L.Character
+        if not (hit and c) then return end
+        local hrp = c:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+        hrp.CFrame = CFrame.new(hit.Position + Vector3.new(0,2.5,0))
+    end)
+    t.Parent = L.Backpack
+end
+
+local function Freeze_tool()
+    if L.Backpack:FindFirstChild("Freeze") or HiddenFolder:FindFirstChild("Freeze") then return end
+    local t = Instance.new("Tool")
+    t.RequiresHandle = false
+    t.Name = "Freeze"
+    t.Activated:Connect(function()
+        if not rootPart then return end
+        if not isTP then
+            savedCF = rootPart.CFrame
+            isTP = true
+            startHB()
+        else
+            isTP = false
+            savedCF = nil
+            stopHB()
+        end
+    end)
+    t.Parent = L.Backpack
+end
+
+local function adjustHipHeight(c)
+    local h = c:FindFirstChildOfClass("Humanoid")
+    if h then
+        h.HipHeight += 0.45
+
+        local targetHipHeight = h.HipHeight
+        h:GetPropertyChangedSignal("HipHeight"):Connect(function()
+            if h.HipHeight ~= targetHipHeight then
+                h.HipHeight = targetHipHeight
+            end
+        end)
+    end
+end
+
+local AnimFrozen = false
+local AnimConn, SavedAnimate
+
+local function getHumanoid(c)
+    return c and c:FindFirstChildOfClass("Humanoid")
+end
+
+local function disableAnimate(c)
+    local s = c:FindFirstChild("Animate")
+    if s then
+        SavedAnimate = s
+        s.Disabled = true
+    end
+end
+
+local function enableAnimate(c)
+    local s = SavedAnimate or c:FindFirstChild("Animate")
+    if s then s.Disabled = false end
+    SavedAnimate = nil
+end
+
+local function forceIdle(c)
+    local hum = getHumanoid(c)
+    if not hum then return end
+    local anim = c:FindFirstChild("Animate")
+    if not anim then return end
+    local idle = anim:FindFirstChild("idle")
+    if not idle then return end
+    local obj = idle:FindFirstChildOfClass("Animation")
+    if not obj then return end
+    hum:LoadAnimation(obj):Play(0)
+    task.wait(0.08)
+end
+
+local function stopAll(h)
+    for _, t in ipairs(h:GetPlayingAnimationTracks()) do
+        t:Stop(0)
+    end
+end
+
+local function FreezeAnims(c)
+    local hum = getHumanoid(c)
+    if not hum then return end
+    disableAnimate(c)
+    forceIdle(c)
+    stopAll(hum)
+    if AnimConn then AnimConn:Disconnect() end
+    AnimConn = hum.AnimationPlayed:Connect(function(t)
+        task.defer(function() t:Stop(0) end)
+    end)
+end
+
+local function UnfreezeAnims(c)
+    local hum = getHumanoid(c)
+    if not hum then return end
+    if AnimConn then AnimConn:Disconnect() end
+    enableAnimate(c)
+    local desc = hum:GetAppliedDescription()
+    hum:ApplyDescription(desc)
+    task.wait(0.1)
+    hum:ChangeState(Enum.HumanoidStateType.GettingUp)
+    task.wait(0.05)
+    hum:ChangeState(Enum.HumanoidStateType.Running)
+end
+
+local function FreezeAnimTool()
+    if L.Backpack:FindFirstChild("Freeze Animations") or HiddenFolder:FindFirstChild("Freeze Animations") then return end
+    local t = Instance.new("Tool")
+    t.RequiresHandle = false
+    t.Name = "Freeze Animations"
+    t.Activated:Connect(function()
+        local c = L.Character
+        if not c then return end
+        AnimFrozen = not AnimFrozen
+        if AnimFrozen then
+            FreezeAnims(c)
+        else
+            UnfreezeAnims(c)
+        end
+    end)
+    t.Parent = L.Backpack
+end
+
+L.CharacterAdded:Connect(function()
+    task.wait(0.2)
+    BP = L:WaitForChild("Backpack")
+    if hidden then ToggleTools(true) end
+end)
+
+L.CharacterAdded:Connect(function(c)
+    task.wait(.15)
+    FB_tool()
+    TP_tool()
+    Freeze_tool()
+    adjustHipHeight(c)
+    FreezeAnimTool()
+end)
+
+if L.Character then
+    FB_tool()
+    TP_tool()
+    Freeze_tool()
+    adjustHipHeight(L.Character)
+    FreezeAnimTool()
+end
+
+local SG = game:GetService("StarterGui")
+SG:SetCoreGuiEnabled(Enum.CoreGuiType.Captures, false)
+SG:SetCoreGuiEnabled(Enum.CoreGuiType.SelfView, false)
+SG:SetCoreGuiEnabled(Enum.CoreGuiType.Health, false)
+SG:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false)
+local chatEnabled = true
+
+U.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.Comma then
+        chatEnabled = not chatEnabled
+        SG:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, chatEnabled)
+    end
+end)
+
+local vu = game:GetService("VirtualUser")
+local AntiAFK = false
+
+P.LocalPlayer.Idled:Connect(function()
+    if AntiAFK then
+        vu:CaptureController()
+        vu:ClickButton2(Vector2.new())
+    end
+end)
+
+U.InputBegan:Connect(function(input, g)
+    if g then return end
+
+    if input.KeyCode == Enum.KeyCode.P and U:IsKeyDown(Enum.KeyCode.Tab) then
+        AntiAFK = not AntiAFK
+
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Anti AFK",
+            Text = AntiAFK and "Activado" or "Desactivado",
+            Duration = 3
+        })
+    end
+end)
+
+U.InputBegan:Connect(function(input, gp)
+	if gp then return end
+	if input.KeyCode == Enum.KeyCode.F4 then
+		local c = L.Character
+		local h = c and c:FindFirstChildOfClass("Humanoid")
+		if h and h.Health > 0 then
+			h.Health = 0
+		end
+	end
+end)
+
+local delHeld = false
+
+U.InputBegan:Connect(function(input, gp)
+	if gp then return end
+
+	if input.KeyCode == Enum.KeyCode.Delete then
+		delHeld = true
+	elseif input.KeyCode == Enum.KeyCode.Y and delHeld then
+		game:Shutdown()
+	end
+end)
+
+U.InputEnded:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.Delete then
+		delHeld = false
+	end
+end)
