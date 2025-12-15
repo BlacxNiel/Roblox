@@ -848,7 +848,6 @@ U.InputBegan:Connect(function(input, gp)
 	end
 end)
 
-
 local yHeld = false
 
 U.InputBegan:Connect(function(input, gp)
