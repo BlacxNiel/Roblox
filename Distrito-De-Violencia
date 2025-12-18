@@ -904,7 +904,7 @@ local UIS = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local Cam = workspace.CurrentCamera
 
-local aimbotEnabled = false
+local aimbotEnabled = true
 local holdingRightClick = false
 
 UIS.InputBegan:Connect(function(input, g)
