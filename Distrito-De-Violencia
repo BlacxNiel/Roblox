@@ -910,15 +910,9 @@ local holdingRightClick = false
 UIS.InputBegan:Connect(function(input, g)
 	if g then return end
 
-	if i.KeyCode == Enum.KeyCode.Nine and UIS:IsKeyDown(Enum.KeyCode.LeftControl) then
-	aimbotEnabled = not aimbotEnabled
-
-	game:GetService("StarterGui"):SetCore("SendNotification", {
-		Title = "Aimbot",
-		Text = aimbotEnabled and "ON" or "OFF",
-		Duration = 1.2
-	})
-end
+	if input.KeyCode == Enum.KeyCode.F4 and UIS:IsKeyDown(Enum.KeyCode.LeftControl) then
+		aimbotEnabled = not aimbotEnabled
+	end
 
 	if input.UserInputType == Enum.UserInputType.MouseButton2 then
 		holdingRightClick = true
