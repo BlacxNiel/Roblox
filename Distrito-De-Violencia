@@ -893,3 +893,77 @@ U.InputEnded:Connect(function(input)
 		delHeld = false
 	end
 end)
+
+local TARGET_PART = "Head"
+local MAX_DISTANCE = 55
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+
+local LocalPlayer = Players.LocalPlayer
+local Cam = workspace.CurrentCamera
+
+local aimbotEnabled = false
+local holdingRightClick = false
+
+UIS.InputBegan:Connect(function(input, g)
+	if g then return end
+
+	if i.KeyCode == Enum.KeyCode.Nine and UIS:IsKeyDown(Enum.KeyCode.LeftControl) then
+	aimbotEnabled = not aimbotEnabled
+
+	game:GetService("StarterGui"):SetCore("SendNotification", {
+		Title = "Aimbot",
+		Text = aimbotEnabled and "ON" or "OFF",
+		Duration = 1.2
+	})
+end
+
+	if input.UserInputType == Enum.UserInputType.MouseButton2 then
+		holdingRightClick = true
+	end
+end)
+
+UIS.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton2 then
+		holdingRightClick = false
+	end
+end)
+
+local function GetClosestEnemy()
+	local closest, closestDistance = nil, math.huge
+	local char = LocalPlayer.Character
+	if not char or not char:FindFirstChild("HumanoidRootPart") then return nil end
+
+	local myPos = char.HumanoidRootPart.Position
+
+	for _, plr in ipairs(Players:GetPlayers()) do
+		if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team and plr.Character then
+			local head = plr.Character:FindFirstChild(TARGET_PART)
+			local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+			if head and hrp then
+				local d = (hrp.Position - myPos).Magnitude
+				if d <= MAX_DISTANCE and d < closestDistance then
+					closestDistance = d
+					closest = head
+				end
+			end
+		end
+	end
+	return closest
+end
+
+local function AimAt(pos)
+	local dir = (pos - Cam.CFrame.Position).Unit
+	Cam.CFrame = CFrame.new(Cam.CFrame.Position, Cam.CFrame.Position + dir)
+end
+
+RunService.RenderStepped:Connect(function()
+	if aimbotEnabled and holdingRightClick then
+		local target = GetClosestEnemy()
+		if target then
+			AimAt(target.Position)
+		end
+	end
+end)
