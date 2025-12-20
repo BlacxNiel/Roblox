@@ -83,8 +83,9 @@ local function CheckIfBad(Inst)
             if _G.Settings.Images.Destroy then Inst:Destroy() end
 
         elseif table.find(CanBeEnabled, Inst.ClassName) then
-            if _G.Settings.Other["No Particles"] then Inst.Enabled = false end
-            if _G.Settings.Other["No Particles"] then Inst:Destroy() end
+            if _G.Settings.Other["No Particles"] then
+                Inst.Enabled = false
+            end
 
         elseif Inst:IsA("PostEffect") and _G.Settings.Other["No Camera Effects"] then
             Inst.Enabled = false
