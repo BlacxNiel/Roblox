@@ -625,7 +625,7 @@ local HiddenFolder = Instance.new("Folder")
 HiddenFolder.Name = "HiddenTools"
 HiddenFolder.Parent = RS
 
-local createdTools = {["FullBright"]=true, ["TP Click"]=true, ["Freeze"]=true, ["Freeze Animations"]=true}
+local createdTools = {["FullBright"]=true, ["TP Click"]=true, ["Freeze"]=true}
 local hidden = false
 
 local function ToggleTools(forceHide)
