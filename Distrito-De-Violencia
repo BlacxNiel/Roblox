@@ -785,24 +785,6 @@ local function UnfreezeAnims(c)
     hum:ChangeState(Enum.HumanoidStateType.Running)
 end
 
-local function FreezeAnimTool()
-    if L.Backpack:FindFirstChild("Freeze Animations") or HiddenFolder:FindFirstChild("Freeze Animations") then return end
-    local t = Instance.new("Tool")
-    t.RequiresHandle = false
-    t.Name = "Freeze Animations"
-    t.Activated:Connect(function()
-        local c = L.Character
-        if not c then return end
-        AnimFrozen = not AnimFrozen
-        if AnimFrozen then
-            FreezeAnims(c)
-        else
-            UnfreezeAnims(c)
-        end
-    end)
-    t.Parent = L.Backpack
-end
-
 L.CharacterAdded:Connect(function()
     task.wait(0.2)
     BP = L:WaitForChild("Backpack")
@@ -815,7 +797,6 @@ L.CharacterAdded:Connect(function(c)
     TP_tool()
     Freeze_tool()
     adjustHipHeight(c)
-    FreezeAnimTool()
 end)
 
 if L.Character then
@@ -823,7 +804,6 @@ if L.Character then
     TP_tool()
     Freeze_tool()
     adjustHipHeight(L.Character)
-    FreezeAnimTool()
 end
 
 local SG = game:GetService("StarterGui")
