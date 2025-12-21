@@ -1024,15 +1024,10 @@ local RunService          = game:GetService("RunService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
 local LP = Players.LocalPlayer
-local PG = LP:WaitForChild("PlayerGui")
-
-local CheckGui = PG:WaitForChild("SkillCheckPromptGui")
-local Check    = CheckGui:WaitForChild("Check")
-local Line     = Check:WaitForChild("Line")
-local Goal     = Check:WaitForChild("Goal")
-
 local HeartbeatConn
 local pressing = false
+
+local Check, Line, Goal
 
 local function IsSurvivor()
     return LP.Team and LP.Team.Name == "Survivors"
@@ -1058,6 +1053,8 @@ local function PressSpace()
 end
 
 local function LineInGoal()
+    if not Line or not Goal then return false end
+
     local lr = Line.Rotation % 360
     local gr = Goal.Rotation % 360
 
@@ -1072,7 +1069,7 @@ local function LineInGoal()
 end
 
 local function HeartbeatCheck()
-    if not IsSurvivor() then
+    if not IsSurvivor() or not Check then
         DisconnectHeartbeat()
         return
     end
@@ -1083,18 +1080,38 @@ local function HeartbeatCheck()
     end
 end
 
-local function OnCheckVisible()
-    if not IsSurvivor() then
-        DisconnectHeartbeat()
-        return
-    end
+local function HookCheckGui()
+    local PG = LP:WaitForChild("PlayerGui")
 
-    if Check.Visible then
-        DisconnectHeartbeat()
-        HeartbeatConn = RunService.Heartbeat:Connect(HeartbeatCheck)
-    else
-        DisconnectHeartbeat()
-    end
+    local CheckGui = PG:WaitForChild("SkillCheckPromptGui", 10)
+    if not CheckGui then return end
+
+    Check = CheckGui:WaitForChild("Check", 5)
+    if not Check then return end
+
+    Line = Check:WaitForChild("Line", 5)
+    Goal = Check:WaitForChild("Goal", 5)
+
+    Check:GetPropertyChangedSignal("Visible"):Connect(function()
+        if not IsSurvivor() then
+            DisconnectHeartbeat()
+            return
+        end
+
+        if Check.Visible then
+            DisconnectHeartbeat()
+            HeartbeatConn = RunService.Heartbeat:Connect(HeartbeatCheck)
+        else
+            DisconnectHeartbeat()
+        end
+    end)
 end
 
-Check:GetPropertyChangedSignal("Visible"):Connect(OnCheckVisible)
+LP.PlayerGui.ChildAdded:Connect(function(child)
+    if child.Name == "SkillCheckPromptGui" then
+        task.wait(0.1)
+        HookCheckGui()
+    end
+end)
+
+task.spawn(HookCheckGui)
