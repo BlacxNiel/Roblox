@@ -1019,12 +1019,14 @@ workspace.DescendantAdded:Connect(function(v)
     end
 end)
 
-local Players             = game:GetService("Players")
-local RunService          = game:GetService("RunService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
 local LP = Players.LocalPlayer
+
 local HeartbeatConn
+local VisibleConn
 local pressing = false
 
 local Check, Line, Goal
@@ -1033,34 +1035,34 @@ local function IsSurvivor()
     return LP.Team and LP.Team.Name == "Survivors"
 end
 
-local function DisconnectHeartbeat()
+local function FullReset()
     if HeartbeatConn then
         HeartbeatConn:Disconnect()
         HeartbeatConn = nil
     end
+    if VisibleConn then
+        VisibleConn:Disconnect()
+        VisibleConn = nil
+    end
+    Check, Line, Goal = nil, nil, nil
 end
 
 local function PressSpace()
     if pressing then return end
     pressing = true
-
     VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
     task.wait(0.01)
     VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
-
     task.wait(0.05)
     pressing = false
 end
 
 local function LineInGoal()
     if not Line or not Goal then return false end
-
     local lr = Line.Rotation % 360
     local gr = Goal.Rotation % 360
-
     local gs = (gr + 104) % 360
     local ge = (gr + 114) % 360
-
     if gs > ge then
         return lr >= gs or lr <= ge
     else
@@ -1069,49 +1071,57 @@ local function LineInGoal()
 end
 
 local function HeartbeatCheck()
-    if not IsSurvivor() or not Check then
-        DisconnectHeartbeat()
+    if not IsSurvivor() or not Check or not Check.Visible then
+        FullReset()
         return
     end
-
     if LineInGoal() then
         PressSpace()
-        DisconnectHeartbeat()
+        FullReset()
     end
 end
 
-local function HookCheckGui()
-    local PG = LP:WaitForChild("PlayerGui")
-
-    local CheckGui = PG:WaitForChild("SkillCheckPromptGui", 10)
+local function TryHook()
+    FullReset()
+    local PG = LP:FindFirstChild("PlayerGui")
+    if not PG then return end
+    local CheckGui = PG:FindFirstChild("SkillCheckPromptGui")
     if not CheckGui then return end
-
-    Check = CheckGui:WaitForChild("Check", 5)
+    Check = CheckGui:FindFirstChild("Check")
     if not Check then return end
-
-    Line = Check:WaitForChild("Line", 5)
-    Goal = Check:WaitForChild("Goal", 5)
-
-    Check:GetPropertyChangedSignal("Visible"):Connect(function()
-        if not IsSurvivor() then
-            DisconnectHeartbeat()
-            return
-        end
-
-        if Check.Visible then
-            DisconnectHeartbeat()
+    Line = Check:FindFirstChild("Line")
+    Goal = Check:FindFirstChild("Goal")
+    if not Line or not Goal then return end
+    VisibleConn = Check:GetPropertyChangedSignal("Visible"):Connect(function()
+        if Check.Visible and IsSurvivor() then
+            if HeartbeatConn then HeartbeatConn:Disconnect() end
             HeartbeatConn = RunService.Heartbeat:Connect(HeartbeatCheck)
-        else
-            DisconnectHeartbeat()
         end
     end)
 end
 
-LP.PlayerGui.ChildAdded:Connect(function(child)
+LP.CharacterAdded:Connect(function()
+    task.wait(0.5)
+    TryHook()
+end)
+
+LP:GetPropertyChangedSignal("Team"):Connect(function()
+    task.wait(0.3)
+    TryHook()
+end)
+
+LP:WaitForChild("PlayerGui").ChildAdded:Connect(function(child)
     if child.Name == "SkillCheckPromptGui" then
         task.wait(0.1)
-        HookCheckGui()
+        TryHook()
     end
 end)
 
-task.spawn(HookCheckGui)
+task.spawn(function()
+    while true do
+        task.wait(1)
+        if not Check then
+            TryHook()
+        end
+    end
+end)
