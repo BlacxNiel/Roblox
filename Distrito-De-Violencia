@@ -1018,3 +1018,83 @@ workspace.DescendantAdded:Connect(function(v)
         apply(v)
     end
 end)
+
+local Players             = game:GetService("Players")
+local RunService          = game:GetService("RunService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+local LP = Players.LocalPlayer
+local PG = LP:WaitForChild("PlayerGui")
+
+local CheckGui = PG:WaitForChild("SkillCheckPromptGui")
+local Check    = CheckGui:WaitForChild("Check")
+local Line     = Check:WaitForChild("Line")
+local Goal     = Check:WaitForChild("Goal")
+
+local HeartbeatConn
+local pressing = false
+
+local function IsSurvivor()
+    return LP.Team and LP.Team.Name == "Survivors"
+end
+
+local function DisconnectHeartbeat()
+    if HeartbeatConn then
+        HeartbeatConn:Disconnect()
+        HeartbeatConn = nil
+    end
+end
+
+local function PressSpace()
+    if pressing then return end
+    pressing = true
+
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
+    task.wait(0.01)
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
+
+    task.wait(0.05)
+    pressing = false
+end
+
+local function LineInGoal()
+    local lr = Line.Rotation % 360
+    local gr = Goal.Rotation % 360
+
+    local gs = (gr + 104) % 360
+    local ge = (gr + 114) % 360
+
+    if gs > ge then
+        return lr >= gs or lr <= ge
+    else
+        return lr >= gs and lr <= ge
+    end
+end
+
+local function HeartbeatCheck()
+    if not IsSurvivor() then
+        DisconnectHeartbeat()
+        return
+    end
+
+    if LineInGoal() then
+        PressSpace()
+        DisconnectHeartbeat()
+    end
+end
+
+local function OnCheckVisible()
+    if not IsSurvivor() then
+        DisconnectHeartbeat()
+        return
+    end
+
+    if Check.Visible then
+        DisconnectHeartbeat()
+        HeartbeatConn = RunService.Heartbeat:Connect(HeartbeatCheck)
+    else
+        DisconnectHeartbeat()
+    end
+end
+
+Check:GetPropertyChangedSignal("Visible"):Connect(OnCheckVisible)
