@@ -335,7 +335,7 @@ P.PlayerAdded:Connect(setupPlr)
 P.PlayerRemoving:Connect(function(p2) if p2.Character then remHL(p2.Character) end end)
 
 U.InputBegan:Connect(function(i,g)
-    if not g and i.KeyCode==Enum.KeyCode.Five and U:IsKeyDown(Enum.KeyCode.LeftControl) then
+    if not g and i.KeyCode==Enum.KeyCode.Seven and U:IsKeyDown(Enum.KeyCode.LeftControl) then
         E=not E
         for _,p2 in pairs(P:GetPlayers()) do
             if p2~=L then
