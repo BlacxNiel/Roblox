@@ -868,11 +868,12 @@ UIS.InputBegan:Connect(function(i, gp)
 end)
 
 local TARGET_PART = "Head"
-local MAX_DISTANCE = 55
+local MAX_DISTANCE = 62
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UIS = game:GetService("UserInputService")
+local StarterGui = game:GetService("StarterGui")
 
 local LocalPlayer = Players.LocalPlayer
 local Cam = workspace.CurrentCamera
@@ -880,18 +881,26 @@ local Cam = workspace.CurrentCamera
 local aimbotEnabled = true
 local holdingRightClick = false
 
+local function IsFacingMe(enemyHRP, myPos)
+	local enemyLook = enemyHRP.CFrame.LookVector
+	local dirToMe = (myPos - enemyHRP.Position).Unit
+	local dot = enemyLook:Dot(dirToMe)
+
+	return dot > 0.9
+end
+
 UIS.InputBegan:Connect(function(input, g)
 	if g then return end
 
 	if input.KeyCode == Enum.KeyCode.Nine and UIS:IsKeyDown(Enum.KeyCode.LeftControl) then
-	aimbotEnabled = not aimbotEnabled
+		aimbotEnabled = not aimbotEnabled
 
-	game:GetService("StarterGui"):SetCore("SendNotification", {
-		Title = "Aimbot",
-		Text = aimbotEnabled and "ON" or "OFF",
-		Duration = 1.2
-	})
-    end
+		StarterGui:SetCore("SendNotification", {
+			Title = "Aimbot",
+			Text = aimbotEnabled and "ON" or "OFF",
+			Duration = 1.2
+		})
+	end
 
 	if input.UserInputType == Enum.UserInputType.MouseButton2 then
 		holdingRightClick = true
@@ -915,15 +924,21 @@ local function GetClosestEnemy()
 		if plr ~= LocalPlayer and plr.Team ~= LocalPlayer.Team and plr.Character then
 			local head = plr.Character:FindFirstChild(TARGET_PART)
 			local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
+
 			if head and hrp then
 				local d = (hrp.Position - myPos).Magnitude
+
 				if d <= MAX_DISTANCE and d < closestDistance then
-					closestDistance = d
-					closest = head
+
+					if IsFacingMe(hrp, myPos) then
+						closestDistance = d
+						closest = head
+					end
 				end
 			end
 		end
 	end
+
 	return closest
 end
 
