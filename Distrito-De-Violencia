@@ -886,7 +886,7 @@ local function IsFacingMe(enemyHRP, myPos)
 	local dirToMe = (myPos - enemyHRP.Position).Unit
 	local dot = enemyLook:Dot(dirToMe)
 
-	return dot > 0.9
+	return dot > 0.7
 end
 
 UIS.InputBegan:Connect(function(input, g)
