@@ -971,12 +971,19 @@ freezeConn = UIS.InputBegan:Connect(function(input, gp)
     end
 end)
 
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 
-local COLOR = Color3.fromRGB(255,105,180)
-local ENABLED = true
+local Camera = Workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
 
-local function apply(obj)
+local ENABLED = true
+local ESP_MaxDist = 500
+local COLOR = Color3.fromRGB(255,105,180)
+
+local function ApplyPalletESP(obj)
     if obj:FindFirstChild("PalletESP") then return end
     local h = Instance.new("Highlight")
     h.Name = "PalletESP"
@@ -989,35 +996,111 @@ local function apply(obj)
     h.Parent = obj
 end
 
-local function clear(obj)
+local function ClearPalletESP(obj)
     local h = obj:FindFirstChild("PalletESP")
     if h then h:Destroy() end
 end
 
-local function update()
-    for _,v in ipairs(workspace:GetDescendants()) do
+local function UpdatePallets()
+    for _, v in ipairs(Workspace:GetDescendants()) do
         if v.Name == "Palletwrong" then
-            if ENABLED then apply(v) else clear(v) end
+            if ENABLED then
+                ApplyPalletESP(v)
+            else
+                ClearPalletESP(v)
+            end
         end
     end
 end
 
-UIS.InputBegan:Connect(function(i,g)
+Workspace.DescendantAdded:Connect(function(v)
+    if ENABLED and v.Name == "Palletwrong" then
+        ApplyPalletESP(v)
+    end
+end)
+
+local Windows = {}
+local ESPObjects = {}
+
+local function GetDistance(pos)
+    local char = LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return math.huge end
+    return (hrp.Position - pos).Magnitude
+end
+
+local function CreateESP()
+    local text = Drawing.new("Text")
+    text.Size = 13
+    text.Center = true
+    text.Outline = true
+    text.Font = Drawing.Fonts.Monospace
+    text.Color = COLOR
+    text.Visible = false
+    return text
+end
+
+local function ScanWindows()
+    table.clear(Windows)
+    local map = Workspace:FindFirstChild("Map")
+    if not map then return end
+    for _, v in ipairs(map:GetDescendants()) do
+        if v:IsA("Model") and v.Name == "Window" then
+            local p = v:FindFirstChildWhichIsA("BasePart")
+            if p then
+                Windows[#Windows + 1] = p
+            end
+        end
+    end
+end
+
+local lastScan = 0
+
+RunService.RenderStepped:Connect(function()
+    if not ENABLED then
+        for _, esp in pairs(ESPObjects) do
+            esp.Visible = false
+        end
+        return
+    end
+
+    if tick() - lastScan > 1 then
+        lastScan = tick()
+        ScanWindows()
+    end
+
+    for _, esp in pairs(ESPObjects) do
+        esp.Visible = false
+    end
+
+    for _, part in ipairs(Windows) do
+        if not part.Parent then continue end
+        if GetDistance(part.Position) > ESP_MaxDist then continue end
+
+        local screen, visible = Camera:WorldToViewportPoint(part.Position)
+        if not visible or screen.Z <= 0 then continue end
+
+        if not ESPObjects[part] then
+            ESPObjects[part] = CreateESP()
+        end
+
+        local text = ESPObjects[part]
+        text.Text = "WINDOW"
+        text.Position = Vector2.new(screen.X, screen.Y)
+        text.Visible = true
+    end
+end)
+
+UIS.InputBegan:Connect(function(i, g)
     if g then return end
     if (UIS:IsKeyDown(Enum.KeyCode.LeftControl) or UIS:IsKeyDown(Enum.KeyCode.RightControl))
-    and i.KeyCode == Enum.KeyCode.Six then
+        and i.KeyCode == Enum.KeyCode.Six then
         ENABLED = not ENABLED
-        update()
+        UpdatePallets()
     end
 end)
 
-update()
-
-workspace.DescendantAdded:Connect(function(v)
-    if ENABLED and v.Name == "Palletwrong" then
-        apply(v)
-    end
-end)
+UpdatePallets()
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
