@@ -1085,7 +1085,7 @@ RunService.RenderStepped:Connect(function()
         end
 
         local text = ESPObjects[part]
-        text.Text = "WINDOW"
+        text.Text = "Window"
         text.Position = Vector2.new(screen.X, screen.Y)
         text.Visible = true
     end
