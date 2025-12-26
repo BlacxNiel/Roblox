@@ -869,7 +869,7 @@ end)
 
 local TARGET_PART = "Head"
 local MAX_DISTANCE = 62
-local MIN_DISTANCE = 9
+local MIN_DISTANCE = 11
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -886,7 +886,7 @@ local function IsFacingMe(enemyHRP, myPos)
 	local enemyLook = enemyHRP.CFrame.LookVector
 	local dirToMe = (myPos - enemyHRP.Position).Unit
 	local dot = enemyLook:Dot(dirToMe)
-	return dot > 0.8
+	return dot > 0.9
 end
 
 UIS.InputBegan:Connect(function(input, g)
