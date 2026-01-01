@@ -879,7 +879,7 @@ local StarterGui = game:GetService("StarterGui")
 local LocalPlayer = Players.LocalPlayer
 local Cam = workspace.CurrentCamera
 
-local aimbotEnabled = true
+local aimbotEnabled = false
 local holdingRightClick = false
 
 local function IsFacingMe(enemyHRP, myPos)
