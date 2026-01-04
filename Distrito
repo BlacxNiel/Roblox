@@ -1124,3 +1124,26 @@ task.spawn(function()
         end
     end
 end)
+
+local function HardFix()
+    local c = L.Character
+    local h = c and c:FindFirstChildOfClass("Humanoid")
+    if not h then return end
+
+    if AnimConn then AnimConn:Disconnect() end
+    isTP = false
+    stopHB()
+
+    local anim = c:FindFirstChild("Animate")
+    if anim then anim.Disabled = false end
+
+    h.AutoRotate = true
+    h:ChangeState(Enum.HumanoidStateType.GettingUp)
+    h:ChangeState(Enum.HumanoidStateType.Running)
+end
+
+UIS.InputBegan:Connect(function(i,g)
+    if not g and i.KeyCode == Enum.KeyCode.F1 then
+        HardFix()
+    end
+end)
