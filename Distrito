@@ -485,7 +485,7 @@ local function apply(v)
 end
 
 UIS.InputBegan:Connect(function(i,g)
-    if not g and i.KeyCode==Enum.KeyCode.P then apply(not enabled) end
+    if not g and i.KeyCode==Enum.KeyCode.L then apply(not enabled) end
 end)
 
 plr.CharacterAdded:Connect(function() task.defer(function() apply(enabled) end) end)
